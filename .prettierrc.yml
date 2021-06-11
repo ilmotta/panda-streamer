@@ -1,0 +1,44 @@
+# Prettier will resolve the configuration file starting from the location of the
+# file being formatted, and searching up the file tree until a config file is
+# (or isn’t) found.
+
+# Specify the line length that the printer will wrap on.
+printWidth: 80
+
+# Indent lines with tabs instead of spaces.
+useTabs: false
+
+# Print trailing commas wherever possible in multi-line comma-separated
+# syntactic structures. (A single-line array, for example, never gets trailing
+# commas.)
+trailingComma: 'none'
+
+# Specify the number of spaces per indentation-level.
+tabWidth: 2
+
+# Print semicolons at the ends of statements.
+semi: false
+
+# Use single quotes instead of double quotes.
+singleQuote: true
+
+# Change when properties in objects are quoted. 'as-needed' adds quotes around
+# object properties where required.
+quoteProps: 'as-needed'
+
+# Use single quotes instead of double quotes in JSX.
+jsxSingleQuote: false
+
+# Include parentheses around a sole arrow function parameter.
+arrowParens: 'always'
+
+# When people collaborate on a project from different operating systems, it
+# becomes easy to end up with mixed line endings in a shared git repository. It
+# is also possible for Windows users to accidentally change line endings in a
+# previously committed file from LF to CRLF. Doing so produces a large git diff
+# and thus makes the line-by-line history for a file (git blame) harder to
+# explore. If you want to make sure that your entire git repository only
+# contains Linux-style line endings in files covered by Prettier: Ensure
+# Prettier’s endOfLine option is set to lf (this is a default value since
+# v2.0.0)
+endOfLine: 'lf'

@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  a.co-base {
+    @apply text-indigo-700 hover:text-purple-700;
+  }
+
+  .co-page-title {
+    @apply text-3xl font-extrabold text-gray-900;
+  }
+
+  .co-btn {
+    @apply inline-flex justify-center py-2 px-4 whitespace-nowrap;
+    @apply transition duration-300 ease-in-out;
+    @apply rounded-md border-transparent;
+    @apply font-bold text-sm;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply disabled:cursor-auto disabled:opacity-70;
+  }
+
+  .co-btn-primary {
+    @apply co-btn text-white bg-purple-500 hover:bg-purple-700;
+    @apply focus:ring-purple-500 disabled:bg-purple-500;
+  }
+
+  .co-btn-secondary {
+    @apply co-btn text-gray-700 bg-gray-200 hover:bg-purple-700;
+    @apply focus:ring-purple-500 disabled:bg-gray-400;
+    @apply hover:bg-purple-200 hover:text-purple-600;
+  }
+
+  .co-input-text {
+    @apply p-2 focus:outline-none focus:border-purple-400 transition;
+    @apply border-2 border-gray-300 rounded-md;
+    @apply disabled:text-gray-500 disabled:bg-gray-100;
+    @apply text-gray-800;
+  }
+
+  .co-select {
+    @apply py-2 px-3 border-2 border-gray-300 bg-white transition;
+    @apply rounded-md focus:outline-none focus:border-purple-400;
+    @apply text-gray-800;
+  }
+}
+
+@layer components {
+  .meter {
+    box-sizing: content-box;
+    border-radius: 2px;
+  }
+
+  .meter > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px 0 0 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .meter > span:after,
+  .animate > span > span {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.2) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.2) 75%,
+      transparent 75%,
+      transparent
+    );
+    z-index: 1;
+    background-size: 50px 50px;
+    animation: progress-bar-move 2s linear infinite;
+    overflow: hidden;
+  }
+
+  .animate > span:after {
+    display: none;
+  }
+
+  @keyframes progress-bar-move {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 50px 50px;
+    }
+  }
+
+  .nostripes > span > span,
+  .nostripes > span::after {
+    background-image: none;
+  }
+
+  .form-create-stream {
+    bottom: -100vh;
+    transition: bottom 0.75s ease;
+  }
+
+  .form-create-stream.show {
+    bottom: 0;
+    transition: bottom 0.25s ease;
+  }
+
+  .co-overlay > .co-bg {
+    @apply opacity-80 fixed top-0 z-40 w-full h-full;
+  }
+
+  .co-overlay > .co-content {
+    @apply absolute z-50;
+    padding: 0;
+    width: 20rem;
+    height: 20rem;
+    top: calc(100vh / 2 - 20rem / 2);
+    left: calc(100vw / 2 - 20rem / 2);
+  }
+
+  main:before {
+    background: theme('colors.gray.600');
+    content: ' ';
+    display: block;
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 100%;
+    height: theme('height.36');
+    z-index: 0;
+  }
+
+  nav > ul > li a {
+    @apply hover:bg-gray-500 rounded-md transition px-3 py-2;
+  }
+
+  .co-btn-group {
+    @apply flex;
+
+    button {
+      @apply p-2 px-2 bg-gray-50 border-2 border-r-0;
+      @apply hover:bg-purple-100 transition;
+      @apply hover:text-purple-600;
+    }
+
+    button:first-child {
+      @apply rounded-l-md;
+    }
+
+    button:last-child {
+      @apply rounded-r-md border-r-2;
+    }
+
+    button.co-active {
+      @apply bg-purple-100 text-purple-600;
+    }
+  }
+
+  .co-landing-page {
+    main {
+      > .container > div {
+        @apply shadow-none bg-transparent;
+      }
+
+      &:before {
+        display: none;
+      }
+    }
+
+    nav {
+      @apply text-gray-700 bg-transparent;
+
+      > ul > li a {
+        @apply hover:bg-purple-200;
+
+        &.co-logo {
+          @apply hover:bg-transparent;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "author": "Icaro Motta",
+  "license": "MIT",
+  "name": "panda-streamer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "audit": "npm audit --omit dev",
+    "blockchain:local": "ganache-cli --accounts 5 --blockTime 0 --defaultBalanceEther 1000 --deterministic --mnemonic 'test test test test test test test test test test test junk' --port 8545 --hostname '127.0.0.1' --db .cache/ganache/",
+    "clean": "rm -rf .shadow-cljs/ build/public/css/ build/public/js/ .cache/ .log/",
+    "compile": "concurrently npm:web:compile npm:css:compile",
+    "css:compile": "postcss src/main/resources/css/**/*.css --dir build/public/css/",
+    "css:release": "postcss src/main/resources/css/**/*.css --env production --dir build/public/css/",
+    "css:watch": "postcss src/main/resources/css/**/*.css --watch --dir build/public/css/",
+    "release": "concurrently npm:web:release npm:css:release",
+    "watch": "concurrently npm:blockchain:local npm:web:watch npm:css:watch",
+    "web:compile": "shadow-cljs compile web",
+    "web:release": "shadow-cljs release web",
+    "web:watch": "shadow-cljs watch web"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.2.6",
+    "concurrently": "^6.2.0",
+    "cssnano": "^5.0.6",
+    "dotenv": "^10.0.0",
+    "ganache-cli": "^6.12.2",
+    "postcss-cli": "^8.3.1",
+    "prettier": "^2.3.2",
+    "shadow-cljs": "2.14.5",
+    "tailwindcss": "^2.1.4"
+  },
+  "dependencies": {
+    "@metamask/jazzicon": "^2.0.0",
+    "ethers": "^5.3.0",
+    "highlight.js": "10.7.2",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "readable-stream": "^2.3.7"
+  }
+}
