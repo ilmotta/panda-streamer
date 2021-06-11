@@ -1,0 +1,320 @@
+#+TITLE: Panda Streamer
+
+* Table of Contents
+:PROPERTIES:
+:TOC: :include all :ignore this
+:END:
+
+:CONTENTS:
+- [[#product][Product]]
+  - [[#features][Features]]
+    - [[#creating-streams][Creating streams]]
+    - [[#listing-and-filtering-streams][Listing and filtering streams]]
+- [[#tech-stack][Tech Stack]]
+  - [[#production-libraries][Production libraries]]
+  - [[#development-only-libraries][Development only libraries]]
+- [[#improvements][Improvements]]
+  - [[#error-handling][Error handling]]
+  - [[#polling][Polling]]
+- [[#deployment][Deployment]]
+  - [[#application-bundling-tools][Application bundling tools]]
+- [[#local-development][Local development]]
+  - [[#1-install-runtimes-and-application-dependencies][1. Install runtimes and application dependencies]]
+  - [[#2-install-a-local-blockchain][2. Install a local blockchain]]
+  - [[#3-deploy-sablier-contracts][3. Deploy Sablier contracts]]
+  - [[#4-run-the-application][4. Run the application]]
+  - [[#5-optional-deploy-your-own-erc-20-token-on-rinkeby][5. (Optional) Deploy your own ERC-20 Token on Rinkeby]]
+  - [[#emacs-repls][Emacs REPLs]]
+:END:
+
+* Product
+
+/Panda Streamer/ is the name of a *fictional* product, currently hosted at
+https://panda-streamer.netlify.app/. It's an Ethereum DeFi application that
+allows users to continuously send ERC-20 tokens to someone else within a
+specified window of time. It leverages the [[https://sablier.finance/][Sablier]] protocol behind the scenes.
+
+#+begin_html
+<table>
+  <tr>
+    <td><img src="docs/screenshot-01.png" width="350"/></td>
+    <td><img src="docs/screenshot-02.png" width="350"/></td>
+  </tr>
+</table>
+#+end_html
+
+** Features
+
+The app is exclusively integrated with MetaMask and users can:
+
+1. Stream any ERC-20 token to any address over a period of time, be it in local
+   or test environments (e.g. Rinkeby).
+2. List successful streams.
+3. Filter successful streams by their time of creation.
+
+*** Creating streams
+
+#+begin_html
+<table>
+  <tr>
+    <td><img src="docs/screenshot-04.png" width="400"/></td>
+    <td><img src="docs/screenshot-06.png" height="450"/></td>
+  </tr>
+</table>
+#+end_html
+
+Here's how the form submission works behind the scenes:
+
+1. The user submits the form and has to approve via MetaMask the first
+   transaction (the =approve= call by the ERC-20 token contract).
+2. Once approved the user waits for it to be confirmed by 1 block.
+3. Then a validation using Ethers =callStatic= is used to call
+   =Sablier.createStream= in read-only mode. If no errors are found then an
+   attempt to create a real stream is finally dispatched.
+4. The user is redirected to the listing page without actually waiting for the
+   transaction to be mined.
+
+If errors are found during these steps the user sees an appropriate error
+message and can either cancel or submit the form again.
+
+*** Listing and filtering streams
+
+#+begin_html
+<table>
+  <tr>
+    <td><img src="docs/screenshot-03.png" width="400"/></td>
+    <td><img src="docs/screenshot-05.png" height="350"/></td>
+  </tr>
+</table>
+#+end_html
+
+* Tech Stack
+
+In no order of importance:
+
+- [[https://clojurescript.org/][Clojure(Script)]]
+- [[https://github.com/ethers-io/ethers.js/][Ethers]]
+- [[https://metamask.io/][Metamask]]
+- [[https://app.netlify.com/][Netlify]]
+- [[https://nodejs.org/en/][Node.js]]
+- [[https://day8.github.io/re-frame/][re-frame]]
+- [[https://shadow-cljs.github.io/docs/UsersGuide.html][Shadow CLJS]]
+- [[https://tailwindcss.com/docs][Tailwind CSS]]
+
+Other tools:
+
+- [[https://heroicons.com/][Heroicons]]
+- [[https://cssnano.co/][cssnano]]
+- [[https://postcss.org/][PostCSS]]
+- [[https://purgecss.com/][PurgeCSS]]
+- [[https://tailwindcss.com/docs][Tailwind CSS]]
+- [[https://github.com/postcss/autoprefixer][postcss/autoprefixer]]
+- http://cljson.com/ Useful to transform ABIs to EDN.
+
+** Production libraries
+
+[[https://github.com/ethers-io/ethers.js/][ethers-io/ethers.js]] - My library of choice to interact with Ethereum nodes over
+MetaMask. I haven't used =web3.js= to compare, but I based my decision on how
+reliable the tool is and the current trend, i.e. are developers migrating from
+web3 to ethers and why? I went through many hoops along the way and ethers.js is
+by no means ergonomic to use from the ClojureScript perspective. Everything is
+stateful, requires heavy interop syntax, returns JS objects requiring conversion
+to CLJ, etc. Who knows, maybe eventually we will see an objectively superior
+ClojureScript alternative.
+
+[[https://github.com/metosin/malli][metosin/malli]] - Data-driven schemas. I found it much more pleasurable to use in
+the REPL as it has fewer side-effects due to its data-first approach when
+compared to Spec. This library is used to validate the re-frame =db= after it
+changes (it's disabled in production).
+
+[[https://github.com/rgm/tailwind-hiccup][rgm/tailwind-hiccup]] - A tiny library to help Tailwind CSS play along with
+Hiccup.
+
+[[https://github.com/juxt/bidi][juxt/bidi]] and [[https://github.com/kibu-australia/pushy][kibu-australia/pushy]] - Just one out of many possible combinations
+to implement route handling using [[https://developer.mozilla.org/en-US/docs/Web/API/History/pushState][History.pushState]] in re-frame applications.
+
+[[https://github.com/MetaMask/jazzicon][MetaMask/jazzicon]] - A simple identicon library. Far from ideal, but I chose it
+to be the same one used by MetaMask.
+
+** Development only libraries
+
+[[https://github.com/day8/re-frame-10x][day8/re-frame-10x]] - Buggy as hell, but in certain situations it was an
+invaluable tool. You need to uncomment a single line in shadow-cljs.edn to
+enable it.
+
+[[https://github.com/kimmobrunfeldt/concurrently][kimmobrunfeldt/concurrently]] - Run multiple commands concurrently. Simply put, it
+allows you to easily start/stop multiple processes, like the PostCSS watcher,
+the shadow-cljs watcher and the local Ganache instance. It's simple, but it gets
+the job done.
+
+[[https://github.com/trufflesuite/ganache-cli][trufflesuite/ganache-cli]] - Quickly create reproducible blockchains for local
+development. I've used it test my own ERC-20 tokens and to locally deploy
+Sablier contracts.
+
+[[https://github.com/prettier/prettier][prettier/prettier]] - Most developers in the Javascript community know this little
+tool. It's used in this project mainly to automatically format CSS (configured
+via Emacs' =.dir-locals=).
+
+* Improvements
+** Error handling
+
+All calls sent via the provider assume the network will reply in a reasonable
+amount of time. There's no handling of timeouts and the app doesn't retry calls
+that would be totally safe to try again. There's a chance the app could get
+stuck waiting forever for a reply that will never come.
+
+** Polling
+
+The app could use subscriptions to listen for changes based on /ethers filters/
+instead of manually fetching logs.
+
+* Deployment
+
+Netlify hosts Panda Streamer as a SPA. The [[file:netlify.toml]] file sets up
+various configuration options. Pushes to =origin/release= are automatically
+deployed to production.
+
+** Application bundling tools
+
+Being a Single-Page Application (SPA) built with ClojureScript, it's even more
+important to publish optimized assets due to the massive overhead of the runtime
+and how poorly optimized for ClojureScript many Clojure libraries are.
+
+Here's how CSS is bundled:
+
+1. PostCSS is configured via plugins: Tailwind CSS, Tailwind Nesting,
+   Autoprefixer and CSSNano. It's this amazingly flexible tool that allows us
+   write CSS in dozens of different ways due to its plugin ecosystem.
+2. Tailwind CSS in turn uses PurgeCSS to reduce it's bundle size from hundreds
+   of KBs to less than 5kb with gzip. PurgeCSS has its own quirks because
+   sometimes it strips out valid CSS classes from the final output. That's why
+   you'll see regexes in the safelist option in =tailwind.config.js=.
+
+Whenever a production release is generated, the =.cache/report-web.html= file is
+generated and you can use it to hand-optimize imports. For example, =ethers.js=
+is huge, with hundreds of KBs of unnecessary code if you just require "ethers"
+in ClojureScript. That's why you'll find require expressions like
+=["@ethersproject/abi" :refer [Interface]]=.
+
+The end result is decent, but ethers.js and the ClojureScript runtime are big
+players on their own.
+
+|------------+-------------|
+|            | Size (gzip) |
+|------------+-------------|
+| Javascript | 356 kb      |
+| CSS        | 4.3 kb      |
+|------------+-------------|
+
+Image assets are committed in the repository itself and served by Netlify.
+Suboptimal, but it works for this pet project.
+
+* Local development
+
+If you're going to exclusively test Panda Streamer in Rinkeby then you can skip
+steps 2 and 3.
+
+** 1. Install runtimes and application dependencies
+
+You'll need to install Clojure (JVM) in order to install [[https://clojurescript.org/guides/quick-start][ClojureScript]] and
+you'll need Node. Netlify uses a specific Node version =v12.18.0= and the
+shipped NPM =v6.14.4= (as of Jun/2021). If you're going to simply run the app
+locally you'll be fine with the latest LTS version 14.x, but if you want to
+manage the project dependencies it's paramount you use the same Netlify
+versions. I've faced hard to debug issues from the non-backwards compatible way
+=npm= handles the =package-lock.json= file. The Netlify build would constantly
+fail because of that. Ideally, the project should offer [[https://guix.gnu.org/][GNU/Guix]] or Docker
+scripts to help you run this project in an isolated environment.
+
+#+begin_example sh
+cd panda-streamer
+nvm use # to use the specific Netlify version
+npm install
+#+end_example
+
+** 2. Install a local blockchain
+
+Head over to the =panda-streamer= repository and run:
+
+#+begin_example sh
+npm run blockchain:local
+#+end_example
+
+Import at least the top two accounts to MetaMask. They'll be used to create
+streams. Behind the scenes =ganache-cli= was configured to store its data in
+=./cache/ganache/=. If you remove the cache directory and recreate the network
+you'll probably get weird errors in MetaMask because even though the accounts
+are the same (because the mnemonic is hardcoded), their nonces don't match what
+MetaMask has. In that case, for each test account, go to =Advanced > Reset
+Account=.
+
+** 3. Deploy Sablier contracts
+
+The recommended approach to test Sablier contracts locally is to clone the
+repository and deploy them yourself in a network provided by Ganache, HardHat
+etc. In general, testing locally proved to be very similar to the "real" Rinkeby
+network with the added bonus of being fast, reproducible and 100% private. Well,
+not really the reproducible part, unfortunately things work much better in
+Rinkeby and the Ganache/HardHat blockchains behaved unexpectedly sometimes.
+
+You'll need =yarn= and Node =v11.15.0= for this task. The CI environment
+variable is mandatory to compile for local development. If you're an NVM (Node
+Version Manager) user, simply run =nvm install v11.15.0=, followed by =npm
+install -g yarn=.
+
+#+begin_example sh
+git clone git@github.com/sablierhq/sablier.git
+cd sablier
+git checkout audit-v1
+nvm use v11.15.0
+yarn run bootstrap
+cd packages/protocol
+rm -rf build/ && CI=true npx truffle migrate --reset --network development
+#+end_example
+
+In the output, take note of the =ERC20Mock= address. The =Sablier= contract
+address you can put in the =shadow-cljs.edn=
+=acme.web.domain.sablier/sablier-local-contract-address= variable under
+=[:builds :web :dev :closure-defines]=. Unfortunately shadow-cljs is not very
+helpful with environment variables and there are even tools out there trying to
+remove this exact limitation. Ideally I'd want the project to be configurable by
+a =.env= file, as that is far more convenient.
+
+** 4. Run the application
+
+From now on, if you've already deployed Sablier contracts you can just call =npm
+run watch= and all processes will run by the [[https://github.com/kimmobrunfeldt/concurrently][concurrently]] Node package. You can
+also run them individually in separate shell sessions.
+
+#+begin_example
+npm run web:watch
+npm run css:watch
+npm run blockchain:local
+#+end_example
+
+In case you want to start from scratch, call =npm run clean=. This will remove
+all temporary files, like the shadow-cljs cache, the local Ganache blockchain,
+etc. Just bear in mind you'll need to redeploy Sablier contracts. In that case,
+follow the previous instructions.
+
+If you want to run a ClojureScript REPL, simply start it as usual and call =npm
+run css:watch= and =npm run blockchain:local= in separate shell sessions.
+
+** 5. (Optional) Deploy your own ERC-20 Token on Rinkeby
+
+If you want to test the application with your own mintable token for testing, go
+to https://cointool.app/eth/createToken and create a standard token with 18
+decimals. Click =Advanced= and add your public address. You'll need to connect
+your wallet to deploy it.
+
+If you want mintable DAI, just go to [[https://rinkeby.etherscan.io/address/0xc3dbf84abb494ce5199d5d4d815b10ec29529ff8#writeContract][TestnetDAI]] on Etherscan and call the mint
+function.
+
+** Emacs REPLs
+
+If you are using Emacs, simply run =M-x cider-jack-in-clj&cljs=, give it a
+couple seconds and open/restart the browser window. You should see no errors in
+the Developer Tools console. Two REPLs will be available, the CLJ (where you can
+call shadow-cljs functions), and the CLJS REPL that evaluates code from your
+ClojureScript buffers. The [[file:.dir-locals.el]] file sets default variables to
+reduce or eliminate the number of prompts from CIDER.

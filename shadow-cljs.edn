@@ -1,0 +1,64 @@
+{:source-paths ["src/main/clojure"]
+
+ :dependencies [[re-frame/re-frame "1.2.0"]
+
+                ;; Data-driven schemas.
+                [metosin/malli "0.5.1"]
+
+                ;; Force re-frame to use the latest Reagent version. The latest
+                ;; release also removes lots of compiler warnings and support
+                ;; React 17.0.2.
+                [reagent/reagent "1.1.0"]
+
+                ;; Compose Tailwind classes using data.
+                [rgm/tailwind-hiccup "0.2.0"]
+
+                ;; Client-side routing.
+                [bidi/bidi "2.1.6"]
+                [kibu/pushy "0.3.8"]
+
+                [day8.re-frame/tracing "0.6.2"]
+                [day8.re-frame/re-frame-10x "1.1.3"]]
+
+ ;; Route /index.html request to <project-root>/resources/public/index.html
+ :dev-http {8080 "build/public"}
+
+ :builds
+ {:web
+  {:target :browser
+   :output-dir "build/public/js"
+   :modules {:main {:init-fn acme.web.app/main}}
+
+   ;; Only release builds will produce a report when using the hook, it does not
+   ;; affect watch or compile.
+   :build-hooks [(shadow.cljs.build-report/hook {:output-to ".cache/report-web.html"})]
+
+   :devtools {
+              ;; Uncomment and refresh page to enable re-frame-10x.
+              ;; :preloads [day8.re-frame-10x.preload]
+              }
+
+   ;; Closing the re-frame-10x window causes an exception.
+   ;; Issue created on 2021/06/04.
+   ;; https://github.com/day8/re-frame-10x/issues/306
+   :dev {:compiler-options
+         {:closure-defines
+          {re-frame.trace.trace-enabled? true
+           day8.re-frame.tracing.trace-enabled? true
+
+           ;; Validate the app state in development.
+           acme.web.db/validation-enabled? true
+
+           ;; Use a specific local Sablier contract.
+           ;; acme.web.domain.sablier/sablier-local-contract-address
+           ;; "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+           }}}
+
+   :release {:infer-externs :auto
+             :compiler-options
+             {:optimizations :advanced
+              :closure-defines {;; NOTE: Uncomment for locally testing the release bundle.
+                                ;; acme.web.domain.sablier/sablier-local-contract-address
+                                ;; "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+                                }}
+             :build-options {:ns-aliases {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}}}}

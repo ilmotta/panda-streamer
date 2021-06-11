@@ -1,0 +1,41 @@
+# Settings in the [build] context are global and are applied to all contexts
+# unless otherwise overridden by more specific contexts.
+[build]
+    # Directory that contains the deploy-ready HTML files and assets generated
+    # by the build. This is relative to the base directory if one has been set,
+    # or the root directory if a base has not been set. This sample publishes
+    # the directory located at the absolute path "root/project/build-output"
+    publish = "build/public/"
+
+    # Default build command.
+    command = "npm install && npm run release"
+
+# The following redirect is intended for use with most SPAs that handle routing
+# internally.
+[[redirects]]
+    from = "/*"
+    to = "/index.html"
+    status = 200
+
+[[headers]]
+  # Define which paths this specific [[headers]] block will cover.
+  for = "/*"
+
+  [headers.values]
+    # X-Frame-Options can be used to indicate whether or not a browser should be
+    # allowed to render a page in a <frame>, <iframe>, <embed> or <object>.
+    # Sites can use this to avoid click-jacking attacks
+    X-Frame-Options = "DENY"
+
+    # Instruct crawlers not to index this site.
+    X-Robots-Tag = "noindex"
+
+    # The HTTP X-XSS-Protection response header is a feature of Internet
+    # Explorer, Chrome and Safari that stops pages from loading when they detect
+    # reflected cross-site scripting (XSS) attacks. Although these protections
+    # are largely unnecessary in modern browsers when sites implement a strong
+    # Content-Security-Policy that disables the use of inline JavaScript
+    # ('unsafe-inline'), they can still provide protections for users of older
+    # web browsers that don't yet support CSP.
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+    X-XSS-Protection = "1; mode=block"
