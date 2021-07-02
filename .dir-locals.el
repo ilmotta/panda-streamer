@@ -1,5 +1,6 @@
 ((nil . ((cider-offer-to-open-cljs-app-in-browser . nil)
          (cider-default-cljs-repl . shadow)
+         (cider-preferred-build-tool . shadow-cljs)
          (cider-shadow-default-options . ":web")))
  (js2-mode . ((eval . (lsp-deferred))
               (eval . (apheleia-mode))))
