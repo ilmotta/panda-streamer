@@ -12,6 +12,7 @@
     "css:compile": "postcss src/main/resources/css/**/*.css --dir build/public/css/",
     "css:release": "postcss src/main/resources/css/**/*.css --env production --dir build/public/css/",
     "css:watch": "postcss src/main/resources/css/**/*.css --watch --dir build/public/css/",
+    "outdated": "concurrently 'clojure -M:outdated' 'npm outdated'",
     "release": "concurrently npm:web:release npm:css:release",
     "watch": "concurrently npm:blockchain:local npm:web:watch npm:css:watch",
     "web:compile": "shadow-cljs compile web",
