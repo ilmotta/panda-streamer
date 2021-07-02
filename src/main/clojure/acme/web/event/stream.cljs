@@ -233,7 +233,7 @@
 (reg-event-fx
  ::form-show
  default-interceptors
- (fn [{:keys[db]} _]
+ (fn [{:keys [db]} _]
    {:db (assoc db :active-page ::route/create-stream)
     ::effect/route ::route/create-stream
     ::effect/focus-element "stream-recipient-address"}))

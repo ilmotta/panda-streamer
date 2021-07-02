@@ -8,6 +8,10 @@
   {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.06.18"}}
    :main-opts  ["-m" "clj-kondo.main" "--lint" "src"]}
 
+  :format
+  {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.0"}}
+   :main-opts ["-m" "cljfmt.main"]}
+
   ;; Visualize dependencies.
   :graph-deps
   {:replace-paths []

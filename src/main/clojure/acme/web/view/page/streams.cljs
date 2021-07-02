@@ -103,5 +103,4 @@
 
                  [:div.flex.space-x-1.items-center.overflow-ellipsis
                   [:span (.toString deposit)]]]]]]
-             [:div.order-2.sm:order-3.flex.space-y-1
-              ]]]))])]))
+             [:div.order-2.sm:order-3.flex.space-y-1]]]))])]))
