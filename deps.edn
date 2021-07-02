@@ -1,0 +1,39 @@
+{:paths ["src/main/clojure"]
+
+ ;; External dependencies
+ :deps {org.clojure/clojure {:mvn/version "1.10.3"}}
+
+ :aliases
+ {:lint
+  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.06.18"}}
+   :main-opts  ["-m" "clj-kondo.main" "--lint" "src"]}
+
+  ;; Visualize dependencies.
+  :graph-deps
+  {:replace-paths []
+   :replace-deps  {org.clojure/tools.deps.graph {:mvn/version "1.0.56"}}
+   :main-opts     ["-m" "clojure.tools.deps.graph"]
+   :ns-default    clojure.tools.deps.graph
+   :exec-fn       graph
+   :exec-args     {:output ".cache/project-dependencies-graph.png"
+                   :size   true}}
+
+  ;; Carve - search through code for unused vars and remove them.
+  :unused
+  {:extra-deps {borkdude/carve
+                {:git/url "https://github.com/borkdude/carve"
+                 :sha     "f499f65e36e02484609f01ce891f3c0207b24444"}}
+   :main-opts ["-m" "carve.main" "--opts" "{:paths [\"src\"] :dry-run true}"]}
+
+
+  ;; Report project dependencies that have newer versions available.
+  :outdated
+  {:replace-paths []
+   :replace-deps  {com.github.liquidz/antq {:mvn/version "0.13.0"}
+                   org.slf4j/slf4j-nop     {:mvn/version "1.7.31"}}
+   :main-opts     ["-m" "antq.core"]}
+  }
+
+ ;; Provider attributes
+ :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+             "clojars" {:url "https://repo.clojars.org/"}}}
