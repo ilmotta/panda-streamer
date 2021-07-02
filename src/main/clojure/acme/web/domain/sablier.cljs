@@ -107,7 +107,7 @@
            preferred-deposit]}]
   (let [start-time (+ (util/unix-timestamp) initial-delay-seconds)
         stop-time (+ start-time duration-seconds)
-        delta (- stop-time start-time )]
+        delta (- stop-time start-time)]
     {:start-time start-time
      :stop-time stop-time
      :deposit (.toString (round-stream-deposit preferred-deposit delta))}))
