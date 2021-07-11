@@ -17,6 +17,9 @@
                 [bidi/bidi "2.1.6"]
                 [kibu/pushy "0.3.8"]
 
+                ;; Data browser/inspector (only used for development).
+                [djblue/portal "0.12.0"]
+
                 ;; A graph based visualization tool for re-frame event chains.
                 [org.clojars.ertucetin/re-frame-flow "0.1.4"]
                 [day8.re-frame/tracing "0.6.2"]
@@ -35,7 +38,9 @@
    ;; affect watch or compile.
    :build-hooks [(shadow.cljs.build-report/hook {:output-to ".cache/report-web.html"})]
 
-   :devtools {:preloads [re-frame-flow.preload
+   :devtools {:repl-init-ns user
+              :preloads [user
+                         re-frame-flow.preload
                          ;; Uncomment and refresh page to enable re-frame-10x.
                          ;; day8.re-frame-10x.preload
                          ]}
