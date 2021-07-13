@@ -8,6 +8,3 @@
   shadow-cljs.edn file."
   (re-frame/after
    (partial db/validate! db/state-spec)))
-
-(def default-interceptors
-  [validate-state])
