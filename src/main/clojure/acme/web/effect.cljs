@@ -1,5 +1,6 @@
 (ns acme.web.effect
   (:require ["@ethersproject/contracts" :refer [Contract]]
+            [acme.web.domain.etherscan :as etherscan]
             [acme.web.domain.sablier :as sablier]
             [acme.web.route :as route]
             [acme.web.util :as util]
@@ -32,16 +33,13 @@
 (defn fetch-block-number
   "Return the effect description about how to get a block number given a
   `timestamp`."
-  [{:keys [timestamp on-success on-failure]}]
-  (let [uri (str "https://api-rinkeby.etherscan.io/api?module=block&action=getblocknobytime&timestamp="
-                 timestamp
-                 "&closest=before")]
-    {:http-xhrio {:method :get
-                  :uri uri
-                  :timeout 5000
-                  :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success on-success
-                  :on-failure on-failure}}))
+  [{:keys [chain-id timestamp on-success on-failure]}]
+  {:http-xhrio {:method :get
+                :uri (etherscan/block-number-by-timestamp-url chain-id timestamp)
+                :timeout 5000
+                :response-format (ajax/json-response-format {:keywords? true})
+                :on-success on-success
+                :on-failure on-failure}})
 
 ;; ::fetch-stream-logs
 ;;

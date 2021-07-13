@@ -1,6 +1,7 @@
 (ns acme.web.domain.sablier
   (:require ["@ethersproject/abi" :refer [Interface]]
             ["@ethersproject/contracts" :refer [Contract]]
+            [acme.web.domain.wallet :as wallet]
             [acme.web.util :as util]
             [cljs.core.async :refer [go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]))
@@ -14,13 +15,6 @@
    :rinkeby "0xc04Ad234E01327b24a831e3718DBFcbE245904CC"
    :ropsten "0xc04Ad234E01327b24a831e3718DBFcbE245904CC"
    :local sablier-local-contract-address})
-
-(def chain-ids
-  {3 :ropsten
-   4 :rinkeby
-   5 :goerli
-   42 :kovan
-   1337 :local})
 
 ;; These ABIs were cleaned-up to only have the minimum necessary to approve
 ;; spenders of an ERC-20 token, to create basic streams and to retrieve
@@ -113,7 +107,7 @@
      :deposit (.toString (round-stream-deposit preferred-deposit delta))}))
 
 (defn address-for [chain-id]
-  (let [chain-name (chain-ids (util/bignum->int chain-id))]
+  (let [chain-name (-> chain-id util/bignum->int wallet/chain-ids)]
     (get contract-addresses chain-name)))
 
 (defn get-address [^js signer]
