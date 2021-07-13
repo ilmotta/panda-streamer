@@ -3,7 +3,6 @@
             [acme.web.domain.sablier :as sablier]
             [acme.web.domain.validation :as validation]
             [acme.web.effect :as effect]
-            [acme.web.interceptor :refer [default-interceptors]]
             [acme.web.route :as route]
             [acme.web.util :as util]
             [cljs.core.async :refer [go <!]]
@@ -13,7 +12,6 @@
 
 (reg-event-fx
  ::filter-logs
- default-interceptors
  (fn [{:keys [db]} [_ {:keys [hours]}]]
    (let [hours (js/parseInt (or hours (get-in db [:create-stream :max-history-hours])) 10)
          timestamp (- (util/unix-timestamp) (* 3600 hours))]
@@ -27,7 +25,6 @@
 
 (reg-event-fx
  ::filter-logs:block-found
- default-interceptors
  (fn [{:keys [db]} [_ {:keys [result]}]]
    (let [{:keys [provider chain-id]} (:wallet db)]
      {::effect/fetch-stream-logs
@@ -39,7 +36,6 @@
 
 (reg-event-db
  ::filter-logs:finished
- default-interceptors
  (fn [db [_ logs]]
    (-> db
        (assoc-in [:loading :streams] false)
@@ -47,7 +43,6 @@
 
 (reg-event-db
  ::filter-logs:failed
- default-interceptors
  (fn [db [_ _error]]
    (assoc-in db [:loading :streams] false)))
 
@@ -55,7 +50,6 @@
 
 (reg-event-fx
  ::create:request-approval
- default-interceptors
  (fn [{:keys [db]} _]
    (let [fields (get-in db [:form :stream :fields])
          sablier-address (sablier/address-for (get-in db [:wallet :chain-id]))
@@ -79,7 +73,6 @@
 
 (reg-event-db
  ::create:approval-failed
- default-interceptors
  (fn [db [_ error _approve-tx]]
    (-> db
        (dissoc :overlay)
@@ -91,7 +84,6 @@
 
 (reg-event-fx
  ::create:verify-stream-call
- default-interceptors
  (fn [{:keys [db]} [_ context _approve-tx]]
    {:db (assoc-in db [:form :stream :status] :form/validating-stream-call)
     ::effect/contract-transaction-verify
@@ -108,7 +100,6 @@
 
 (reg-event-fx
  ::create:create-stream-transaction
- default-interceptors
  (fn [{:keys [db]} [_ context]]
    {:db (assoc-in db [:form :stream :status] :form/creating-stream-transaction)
     ::effect/contract-transaction
@@ -126,7 +117,6 @@
 
 (reg-event-fx
  ::create:stream-created
- default-interceptors
  (fn [{:keys [db]} [_ _receipt]]
    {:db (assoc-in db [:form :stream :status] :form/stream-transaction-created)
     :fx [[:dispatch-later
@@ -135,7 +125,6 @@
 
 (reg-event-fx
  ::create:redirect-to-streams
- default-interceptors
  (fn [{:keys [db]}]
    {:db (dissoc db :overlay)
     :fx [[:dispatch [::form-reset]]]
@@ -143,7 +132,6 @@
 
 (reg-event-db
  ::create:sablier-failed
- default-interceptors
  (fn [db [_ error _create-stream-tx]]
    (-> db
        (dissoc :overlay)
@@ -155,7 +143,6 @@
 
 (reg-event-fx
  ::fetch-token
- default-interceptors
  (fn [{:keys [db]} _]
    (let [token-address (get-in db [:form :stream :fields :token-address :value])]
      (if-let [symbol (get-in db [:form :stream :token-symbols token-address])]
@@ -168,7 +155,6 @@
 
 (reg-event-db
  ::token-fetched
- default-interceptors
  (fn [db [_ token-address token-symbol]]
    (assoc-in db [:form :stream :token-symbols token-address] token-symbol)))
 
@@ -176,7 +162,6 @@
 
 (reg-event-fx
  ::receipt-fetched
- default-interceptors
  (fn [{:keys [db]} [_ receipt]]
    {:db (-> db
             (assoc-in [:create-stream :receipt-for-log] nil)
@@ -192,7 +177,6 @@
 
 (reg-event-fx
  ::fetch-receipt
- default-interceptors
  (fn [{:keys [db]} _]
    (let [poll-interval (get-in db [:create-stream :receipt-poll-interval-ms])]
      (if (util/wallet-connected? db)
@@ -215,7 +199,6 @@
 
 (reg-event-fx
  ::update-logs
- default-interceptors
  (fn [{:keys [db]} _]
    (let [interval-ms (get-in db [:create-stream :updater-interval-ms])]
      (if (util/wallet-connected? db)
@@ -227,19 +210,16 @@
 
 (reg-event-db
  ::on-mouse-enter:form-token-address
- default-interceptors
  (fn [db _]
    (assoc-in db [:form :stream :show-clipboard-action?] true)))
 
 (reg-event-db
  ::on-mouse-leave:form-token-address
- default-interceptors
  (fn [db _]
    (assoc-in db [:form :stream :show-clipboard-action?] false)))
 
 (reg-event-fx
  ::form-show
- default-interceptors
  (fn [{:keys [db]} _]
    {:db (assoc db :active-page ::route/create-stream)
     ::effect/route ::route/create-stream
@@ -247,14 +227,12 @@
 
 (reg-event-fx
  ::form-cancel
- default-interceptors
  (fn [_ _]
    {:fx [[:dispatch [::form-reset]]]
     ::effect/route ::route/home}))
 
 (reg-event-db
  ::form-update-token-address
- default-interceptors
  (fn [db [_ value]]
    (let [db (assoc-in db [:form :stream :fields :token-address :value] value)]
      (if (validation/address? value)
@@ -263,7 +241,6 @@
 
 (reg-event-db
  ::form-update-recipient-address
- default-interceptors
  (fn [db [_ value]]
    (let [db (assoc-in db [:form :stream :fields :recipient-address :value] value)]
      (if (validation/address? value)
@@ -272,7 +249,6 @@
 
 (reg-event-db
  ::form-update-amount
- default-interceptors
  (fn [db [_ value]]
    (let [error (when-not (validation/money? value) :invalid)]
      (-> db
@@ -281,13 +257,11 @@
 
 (reg-event-db
  ::form-update-unit
- default-interceptors
  (fn [db [_ value]]
    (assoc-in db [:form :stream :fields :unit :value] value)))
 
 (reg-event-db
  ::form-update-time
- default-interceptors
  (fn [db [_ value]]
    (let [error (when-not (validation/pos-integer? value) :invalid)]
      (-> db
@@ -296,7 +270,6 @@
 
 (reg-event-db
  ::form-reset
- default-interceptors
  (fn [db _]
    (-> db
        (assoc-in [:form :stream :status] :form/not-submitted)
@@ -305,7 +278,6 @@
 
 (reg-event-fx
  ::form-create
- default-interceptors
  (fn [{:keys [db]} _]
    (let [fields (get-in db [:form :stream :fields])]
      (when (validation/valid-stream-form?

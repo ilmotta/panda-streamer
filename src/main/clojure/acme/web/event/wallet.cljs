@@ -2,7 +2,6 @@
   (:require ["@ethersproject/providers" :refer [Web3Provider]]
             [acme.web.db :as db]
             [acme.web.effect :as effect]
-            [acme.web.interceptor :refer [default-interceptors]]
             [acme.web.route :as route]
             [acme.web.util :as util]
             [cljs.core.async :refer [go]]
@@ -11,7 +10,6 @@
 
 (reg-event-fx
  ::accounts-changed
- default-interceptors
  (fn [{:keys [db]} [_ accounts]]
    ;; MetaMask also reports changed accounts when none are connected.
    (if (util/wallet-connected? db)
@@ -21,14 +19,12 @@
 
 (reg-event-fx
  ::disconnected
- default-interceptors
  (fn [_ _]
    {:db (assoc-in db/default [:wallet :status] :wallet/disconnected)
     ::effect/route ::route/home}))
 
 (reg-event-fx
  ::listen-disconnected
- default-interceptors
  (fn [_ _]
    (when (util/metamask-installed?)
      (.on js/ethereum "disconnect"
@@ -38,7 +34,6 @@
 
 (reg-event-fx
  ::listen-accounts-changed
- default-interceptors
  (fn [_ _]
    (when (util/metamask-installed?)
      (.on js/ethereum "accountsChanged"
@@ -49,7 +44,6 @@
 ;; It's recommended by the Metamask documentation to reload the page.
 (reg-event-fx
  ::listen-chain-changed
- default-interceptors
  (fn [_ _]
    (when (util/metamask-installed?)
      (.on js/ethereum "chainChanged"
@@ -59,13 +53,11 @@
 
 (reg-event-db
  ::cancel-connection-request
- default-interceptors
  (fn [db _]
    (assoc-in db [:wallet :status] :wallet/connection-rejected)))
 
 (reg-event-fx
  ::ready
- default-interceptors
  (fn [{:keys [db]} [_ {:keys [accounts chain-id provider]}]]
    {:db (-> db
             (assoc-in [:wallet :accounts] accounts)
@@ -82,7 +74,6 @@
 
 (reg-event-fx
  ::request-connection
- default-interceptors
  (fn [{:keys [db]} _]
    (when (util/metamask-installed?)
      (let [accounts* (atom nil)]
@@ -104,7 +95,6 @@
 
 (reg-event-fx
  ::init
- default-interceptors
  (fn [{:keys [db]} _]
    (if (util/metamask-installed?)
      (do
