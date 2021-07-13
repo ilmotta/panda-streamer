@@ -77,7 +77,7 @@
          [:dispatch [::listen-chain-changed]]
          [:dispatch [::listen-accounts-changed]]
          [:dispatch [:acme.web.event.stream/fetch-receipt]]
-         [:dispatch [:acme.web.event.stream/filter]]
+         [:dispatch [:acme.web.event.stream/filter-logs]]
          [:dispatch [:acme.web.event.stream/update-logs]]]}))
 
 (reg-event-fx

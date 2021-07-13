@@ -16,13 +16,13 @@
        "Streams"]
       [:div.flex.space-x-3
        [:button.co-btn-secondary.flex
-        {:on-click #(dispatch [::stream/filter])}
+        {:on-click #(dispatch [::stream/filter-logs])}
         [:div.h-6.w-6
          (tw (when loading? [:animate-spin]))
          [icon/outline-refresh]]]
        [:div.flex.items-center
         [:select.co-select
-         {:on-change #(dispatch [::stream/filter {:since-hours (-> % .-target .-value)}])
+         {:on-change #(dispatch [::stream/filter-logs {:hours (-> % .-target .-value)}])
           :default-value (str (<sub ::sub/max-history-hours))}
          [:option {:value 24} "Last 24h"]
          [:option {:value (* 7 24)} "Last 7 days"]

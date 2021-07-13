@@ -2,10 +2,12 @@
   (:require ["@ethersproject/contracts" :refer [Contract]]
             [acme.web.domain.sablier :as sablier]
             [acme.web.route :as route]
-            [cljs.core.async :refer [go]]
+            [acme.web.util :as util]
+            [cljs.core.async :refer [go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as string]
             [pushy.core :as pushy]
+            [ajax.core :as ajax]
             [re-frame.core :refer [reg-fx dispatch]]
             [re-frame.db :as rf-db]
             [reagent.core :as reagent]))
@@ -26,6 +28,53 @@
     {:code (str (-> error .-cause .-code))
      :message (-> error .-cause .-message)
      :reason (-> error .-cause .-reason)}))
+
+(defn fetch-block-number
+  "Return the effect description about how to get a block number given a
+  `timestamp`."
+  [{:keys [timestamp on-success on-failure]}]
+  (let [uri (str "https://api-rinkeby.etherscan.io/api?module=block&action=getblocknobytime&timestamp="
+                 timestamp
+                 "&closest=before")]
+    {:http-xhrio {:method :get
+                  :uri uri
+                  :timeout 5000
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success on-success
+                  :on-failure on-failure}}))
+
+;; ::fetch-stream-logs
+;;
+;; Given a `block-number`, fetch logs based on the CreateStream event, i.e. all
+;; successful transactions (though not necessarily confirmed). `on-success` will
+;; be dispatched with the collection of logs.
+;;
+;; Usage:
+;; {::fetch-stream-logs {:block-number block-number
+;;                       :provider provider
+;;                       :chain-id chain-id
+;;                       :on-success [::finished]
+;;                       :on-failure [::failed]}}
+;;
+;; `:on-success` and `:on-failure` are optional.
+;;
+(reg-fx
+ ::fetch-stream-logs
+ (fn [{:keys [block-number provider chain-id on-success on-failure]}]
+   (go
+     (try
+       (let [logs (->> (<! (sablier/fetch-stream-logs
+                            {:from-block (js/parseInt block-number 10)
+                             :provider provider
+                             :chain-id chain-id}))
+                       (transduce sablier/logs-create-stream-transducer conj [])
+                       (sort-by #(get-in % [:args :stream-id])
+                                util/bignum-desc-comparator))]
+         (when on-success
+           (dispatch (conj on-success logs))))
+       (catch js/Error error
+         (when on-failure
+           (dispatch (conj on-failure error))))))))
 
 ;; ::clipboard-write
 ;;

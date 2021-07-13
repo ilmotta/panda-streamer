@@ -8,41 +8,48 @@
             [acme.web.util :as util]
             [cljs.core.async :refer [go <!]]
             [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
-
 
 ;;; FILTERS
 
 (reg-event-fx
- ::filter
+ ::filter-logs
  default-interceptors
- (fn [{:keys [db]} [_ filter-options]]
-   (let [filter-options (-> (or filter-options
-                                {:since-hours (get-in db [:create-stream :max-history-hours])})
-                            (update :since-hours int))]
-     (go
-       (let [block-number (<! (util/find-block-number-by-timestamp
-                               {:timestamp (- (util/unix-timestamp)
-                                              (* 3600 (:since-hours filter-options)))
-                                :provider (get-in db [:wallet :provider])
-                                :max-error-seconds (get-in db [:create-stream :block-search-max-error-seconds])}))
-             logs (->> (<! (sablier/fetch-stream-logs
-                            db {:from-block block-number}))
-                       (transduce sablier/logs-create-stream-transducer conj [])
-                       (sort-by #(get-in % [:args :stream-id])
-                                util/bignum-desc-comparator))]
-         (dispatch [::filter-finished logs])))
-     {:db (-> db
-              (assoc-in [:loading :streams] true)
-              (assoc-in [:create-stream :max-history-hours]
-                        (:since-hours filter-options)))})))
+ (fn [{:keys [db]} [_ {:keys [hours]}]]
+   (let [hours (js/parseInt (or hours (get-in db [:create-stream :max-history-hours])) 10)
+         timestamp (- (util/unix-timestamp) (* 3600 hours))]
+     (merge {:db (-> db
+                     (assoc-in [:loading :streams] true)
+                     (assoc-in [:create-stream :max-history-hours] hours))}
+            (effect/fetch-block-number
+             {:timestamp timestamp
+              :on-success [::filter-logs:block-found]
+              :on-failure [::filter-logs:failed]})))))
+
+(reg-event-fx
+ ::filter-logs:block-found
+ default-interceptors
+ (fn [{:keys [db]} [_ {:keys [result]}]]
+   (let [{:keys [provider chain-id]} (:wallet db)]
+     {::effect/fetch-stream-logs
+      {:block-number result
+       :provider provider
+       :chain-id chain-id
+       :on-success [::filter-logs:finished]
+       :on-failure [::filter-logs:failed]}})))
 
 (reg-event-db
- ::filter-finished
+ ::filter-logs:finished
  default-interceptors
  (fn [db [_ logs]]
    (-> db
        (assoc-in [:loading :streams] false)
        (assoc-in [:create-stream :logs] logs))))
+
+(reg-event-db
+ ::filter-logs:failed
+ default-interceptors
+ (fn [db [_ _error]]
+   (assoc-in db [:loading :streams] false)))
 
 ;;; CREATE STREAM
 

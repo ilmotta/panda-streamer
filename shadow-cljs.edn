@@ -20,6 +20,9 @@
                 ;; Data browser/inspector (only used for development).
                 [djblue/portal "0.12.0"]
 
+                ;; An effect handler for AJAX calls.
+                [day8.re-frame/http-fx "0.2.3"]
+
                 ;; A graph based visualization tool for re-frame event chains.
                 [org.clojars.ertucetin/re-frame-flow "0.1.4"]
                 [day8.re-frame/tracing "0.6.2"]

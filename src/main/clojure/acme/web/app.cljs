@@ -4,6 +4,7 @@
             [acme.web.route :as route]
             [acme.web.sub]
             [acme.web.view.core :as view]
+            [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
             [reagent.dom :as reagent-dom]))
 

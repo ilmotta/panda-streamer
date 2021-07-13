@@ -138,7 +138,7 @@
     (set! (-> identicon .-style .-display) nil)
     (.-outerHTML identicon)))
 
-(defn find-block-by-timestamp
+(defn ^:deprecated find-block-by-timestamp
   "Run a binary search on all blocks until it finds one with a timestamp smaller
   than the requested `timestamp` by at most `max-error-seconds`. `timestamp` is
   a proper Unix timestamp in seconds. `provider` is used to fetch blocks by
@@ -148,6 +148,13 @@
   then it returns the earliest possible block that's still smaller than
   `timestamp`. If `timestamp` is smaller than the earliest block (0th) in the
   chain, then the first block is returned.
+
+  DEPRECATED: Although this function works fine, it's usage has been replaced by
+  the Etherscan API action `getblocknobytime`. One downside of using Etherscan
+  is it's rate limited. The other downside is that the API key has to be
+  hardcoded in the code in a completely static website. According to Etherscan
+  blog, starting from Feb 15th 2020 developers are required to use a valid API
+  key.
 
   This implementation obviously assumes blocks are ordered by timestamp, but not
   *strictly* ordered by timestamp, which is in accordance with many sources, as
@@ -219,7 +226,7 @@
                 (<p! (.getBlock provider 0))
                 earliest)))))))
 
-(defn find-block-number-by-timestamp
+(defn ^:deprecated find-block-number-by-timestamp
   "A convenience wrapper to return the block number found or zero."
   [& args]
   (go
