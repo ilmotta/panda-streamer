@@ -19,7 +19,8 @@
                      (assoc-in [:loading :streams] true)
                      (assoc-in [:create-stream :max-history-hours] hours))}
             (effect/fetch-block-number
-             {:timestamp timestamp
+             {:chain-id (get-in db [:wallet :chain-id])
+              :timestamp timestamp
               :on-success [::filter-logs:block-found]
               :on-failure [::filter-logs:failed]})))))
 

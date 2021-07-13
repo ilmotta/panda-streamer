@@ -1,6 +1,6 @@
 (ns acme.web.sub
-  (:require [acme.web.domain.sablier :as sablier]
-            [acme.web.domain.validation :as validation]
+  (:require [acme.web.domain.validation :as validation]
+            [acme.web.domain.wallet :as wallet]
             [acme.web.util :as util]
             [re-frame.core :refer [reg-sub subscribe]]))
 
@@ -81,7 +81,7 @@
  ::wallet-chain
  (fn [db _]
    (when-let [chain-id (get-in db [:wallet :chain-id])]
-     (sablier/chain-ids (util/bignum->int chain-id)))))
+     (wallet/chain-ids (util/bignum->int chain-id)))))
 
 ;;; STREAM FORM
 
