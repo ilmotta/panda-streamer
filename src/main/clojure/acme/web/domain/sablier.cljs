@@ -161,15 +161,17 @@
     (let [receipt (<p! (.waitForTransaction provider (:tx-hash log)))]
       (js->clj-receipt receipt))))
 
-(defn fetch-stream-logs [db {:keys [from-block]}]
+(defn fetch-stream-logs [{:keys [from-block provider chain-id]}]
   (go
-    (let [provider (get-in db [:wallet :provider])
-          payer (.getSigner provider)
-          payer-address (<! (get-address payer))
-          sablier-address (address-for (get-in db [:wallet :chain-id]))
-          sablier-contract (make-sablier-contract payer sablier-address)
-          filter (merge (make-create-stream-filter sablier-contract payer-address)
-                        {:fromBlock (or from-block 0)
-                         :toBlock "latest"})
-          logs (<p! (.getLogs provider (clj->js filter)))]
-      logs)))
+    (try
+      (let [payer (.getSigner provider)
+            payer-address (<! (get-address payer))
+            sablier-address (address-for chain-id)
+            sablier-contract (make-sablier-contract payer sablier-address)
+            filter (merge (make-create-stream-filter sablier-contract payer-address)
+                          {:fromBlock (or from-block 0)
+                           :toBlock "latest"})
+            logs (<p! (.getLogs provider (clj->js filter)))]
+        logs)
+      (catch js/Error error
+        error))))

@@ -124,6 +124,9 @@
      ;;
      ;; References:
      ;;   (1) https://www.sciencedirect.com/science/article/abs/pii/S0306457320309602
+     ;;
+     ;; DEPRECATED: Usage of this configuration is discouraged because the
+     ;; Etherscan API offers a simpler way to find a block number by timestamp.
      [:block-search-max-error-seconds [pos-int? {:min (* 2 3600)}]]]]])
 
 ;; When `false` the `validate!` function will be a no-op. This is important
