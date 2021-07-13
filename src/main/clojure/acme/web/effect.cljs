@@ -2,33 +2,16 @@
   (:require ["@ethersproject/contracts" :refer [Contract]]
             [acme.web.domain.etherscan :as etherscan]
             [acme.web.domain.sablier :as sablier]
+            [acme.web.domain.wallet :as wallet]
             [acme.web.route :as route]
             [acme.web.util :as util]
             [cljs.core.async :refer [go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]
-            [clojure.string :as string]
             [pushy.core :as pushy]
             [ajax.core :as ajax]
             [re-frame.core :refer [reg-fx dispatch]]
             [re-frame.db :as rf-db]
             [reagent.core :as reagent]))
-
-(defn normalize-provider-error
-  "Return a more consistent error map. Unfortunately local blockchains, like the
-  ones provided by Ganache and HardHat behave differently in undocumented ways.
-  For example, signed & failed Sablier transactions in Rinkeby return more
-  information than in local chains."
-  [^js error]
-  (if-let [error-data (some-> error .-cause .-data)]
-    (let [[_ actual-error] (first (filter (fn [[k _v]]
-                                            (string/starts-with? (name k) "0x"))
-                                          (js->clj (.-data error-data))))]
-      {:code (str (.-code error-data))
-       :message (.-message error-data)
-       :reason (get actual-error "reason")})
-    {:code (str (-> error .-cause .-code))
-     :message (-> error .-cause .-message)
-     :reason (-> error .-cause .-reason)}))
 
 (defn fetch-block-number
   "Return the effect description about how to get a block number given a
@@ -142,7 +125,7 @@
              (dispatch (conj on-success result))))
          (catch js/Error error
            (when on-failure
-             (dispatch (conj on-failure (normalize-provider-error error))))))))))
+             (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
 ;; ::contract-transaction-verify
 ;;
@@ -188,7 +171,7 @@
              (dispatch (conj on-success result))))
          (catch js/Error error
            (when on-failure
-             (dispatch (conj on-failure (normalize-provider-error error))))))))))
+             (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
 ;; ::contract-transaction
 ;;
@@ -232,7 +215,7 @@
          (reset! transaction (<p! (.apply contract-fn contract (clj->js args))))
          (catch js/Error error
            (when on-failure
-             (dispatch (conj on-failure (normalize-provider-error error) @transaction)))))
+             (dispatch (conj on-failure (wallet/normalize-provider-error error) @transaction)))))
        (when @transaction
          (if wait
            (try
@@ -242,7 +225,7 @@
                  (dispatch (conj on-success receipt))))
              (catch js/Error error
                (when on-failure
-                 (dispatch (conj on-failure (normalize-provider-error error) @transaction)))))
+                 (dispatch (conj on-failure (wallet/normalize-provider-error error) @transaction)))))
            (when on-success
              (dispatch (conj on-success @transaction)))))))))
 
