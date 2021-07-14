@@ -65,3 +65,13 @@
                   (if (seq accounts)
                     {:accounts accounts :chain-id chain-id}
                     (throw (ex-info ::disconnected {:error nil}))))))))
+
+(defn listen-accounts-changed [f]
+  (.on js/ethereum "accountsChanged"
+       (fn [accounts]
+         (f (js->clj accounts))))
+  nil)
+
+(defn listen-disconnect [f]
+  (.on js/ethereum "disconnect" f)
+  nil)
