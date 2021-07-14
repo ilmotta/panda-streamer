@@ -27,7 +27,7 @@
   (re-frame/dispatch-sync [::stream/form-update-token-address token])
   (re-frame/dispatch-sync [::stream/form-update-amount (or amount "5000")])
   (re-frame/dispatch-sync [::stream/form-update-time (or duration "10")])
-  (re-frame/dispatch-sync [::stream/form-update-unit (or duration-unit "minute")])
+  (re-frame/dispatch-sync [::stream/form-update-duration-unit (or duration-unit "minute")])
   (re-frame/dispatch [::stream/form-create]))
 
 (comment

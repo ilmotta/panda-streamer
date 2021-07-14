@@ -7,6 +7,7 @@
             [acme.web.util :as util]
             [acme.web.domain.etherscan :as etherscan]
             [cljs.core.async :refer [go <!]]
+            [promesa.core :as p]
             [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
 
 ;;; FILTERS
@@ -16,24 +17,20 @@
  (fn [{:keys [db]} [_ {:keys [hours]}]]
    (let [hours (js/parseInt (or hours (get-in db [:create-stream :max-history-hours])) 10)
          timestamp (- (util/unix-timestamp) (* 3600 hours))
-         chain-id (get-in db [:wallet :chain-id])]
+         chain-id (get-in db [:wallet :chain-id])
+         provider (get-in db [:wallet :provider])]
      {:db (-> db
               (assoc-in [:loading :streams] true)
               (assoc-in [:create-stream :max-history-hours] hours))
-      ::effect/promise {:thunk #(etherscan/fetch-block-number-by-timestamp chain-id timestamp)
-                        :on-success [::filter-logs:block-found]
+      ::effect/promise {:thunk (fn []
+                                 (-> (etherscan/fetch-block-number-by-timestamp chain-id timestamp)
+                                     (p/then (fn [block-number]
+                                               (sablier/fetch-stream-logs
+                                                {:from-block block-number
+                                                 :provider provider
+                                                 :chain-id chain-id})))))
+                        :on-success [::filter-logs:finished]
                         :on-failure [::filter-logs:failed]}})))
-
-(reg-event-fx
- ::filter-logs:block-found
- (fn [{:keys [db]} [_ {:keys [block-number]}]]
-   (let [{:keys [provider chain-id]} (:wallet db)]
-     {::effect/fetch-stream-logs
-      {:block-number block-number
-       :provider provider
-       :chain-id chain-id
-       :on-success [::filter-logs:finished]
-       :on-failure [::filter-logs:failed]}})))
 
 (reg-event-db
  ::filter-logs:finished

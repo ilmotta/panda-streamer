@@ -27,5 +27,5 @@
                   :action "getblocknobytime"}
          :handler (fn [[ok? response]]
                     (if (and ok? (= "1" (:status response)))
-                      (resolve {:block-number (js/parseInt (:result response) 10)})
+                      (resolve (js/parseInt (:result response) 10))
                       (reject response)))})))))
