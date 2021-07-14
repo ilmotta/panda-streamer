@@ -13,7 +13,7 @@
    ;; MetaMask also reports changed accounts when none are connected.
    (if (util/wallet-connected? db)
      {:db (assoc-in db [:wallet :accounts] accounts)
-      :fx [[:dispatch [:acme.web.event.stream/filter]]]}
+      :fx [[:dispatch [:acme.web.event.stream/filter-logs]]]}
      {:fx [[:dispatch [::disconnected]]]})))
 
 (reg-event-fx
