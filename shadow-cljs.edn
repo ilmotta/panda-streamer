@@ -2,6 +2,9 @@
 
  :dependencies [[re-frame/re-frame "1.2.0"]
 
+                ;; A promise library.
+                [funcool/promesa "6.0.2"]
+
                 ;; Data-driven schemas.
                 [metosin/malli "0.5.1"]
 

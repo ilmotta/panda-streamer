@@ -1,11 +1,13 @@
 (ns acme.web.event.wallet
   (:require ["@ethersproject/providers" :refer [Web3Provider]]
             [acme.web.db :as db]
+            [acme.web.domain.wallet :as wallet]
             [acme.web.effect :as effect]
             [acme.web.route :as route]
             [acme.web.util :as util]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
+            [promesa.core :as p]
             [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
 
 (reg-event-fx
@@ -76,21 +78,14 @@
  ::request-connection
  (fn [{:keys [db]} _]
    (when (util/metamask-installed?)
-     (let [accounts* (atom nil)]
-       (-> (.request js/ethereum (clj->js {:method "eth_requestAccounts"}))
-           (.then (fn [accounts]
-                    (reset! accounts* (js->clj accounts))
-                    (.request js/ethereum (clj->js {:method "eth_chainId"}))))
-           (.then (fn [chain-id]
-                    (dispatch [::ready {:accounts @accounts*
-                                        :chain-id chain-id
-                                        :provider (new Web3Provider js/ethereum)}])))
-           (.catch (fn [error]
-                     ;; EIP-1193 userRejectedRequest error. If this happens, the
-                     ;; user rejected the connection request.
-                     (if (= 4001 (.-code error))
-                       (dispatch [::cancel-connection-request])
-                       (js/console.error error))))))
+     (-> (wallet/fetch-state)
+         (p/then (fn [{:keys [accounts chain-id]}]
+                   (dispatch [::ready {:accounts accounts
+                                       :chain-id chain-id
+                                       :provider (new Web3Provider js/ethereum)}])))
+         (p/catch (fn [error]
+                    (when (= (ex-message error) ::wallet/user-rejected-request)
+                      (dispatch [::cancel-connection-request])))))
      {:db (assoc-in db [:wallet :status] :wallet/connecting)})))
 
 (reg-event-fx
