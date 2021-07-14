@@ -25,10 +25,10 @@
     (and (float? n) (pos? n))))
 
 (defn valid-stream-form?
-  [{:keys [recipient-address token-address amount time unit]}]
+  [{:keys [recipient-address token-address amount time duration-unit]}]
   (and (money? amount)
        (pos-float? amount)
        (address? recipient-address)
        (address? token-address)
-       (stream-duration-unit? unit)
+       (stream-duration-unit? duration-unit)
        (pos-integer? time)))

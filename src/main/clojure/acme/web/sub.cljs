@@ -102,9 +102,9 @@
    (get-in db [:form :stream :fields :recipient-address :value])))
 
 (reg-sub
- ::form-stream-unit
+ ::form-stream-duration-unit
  (fn [db _]
-   (get-in db [:form :stream :fields :unit :value])))
+   (get-in db [:form :stream :fields :duration-unit :value])))
 
 (reg-sub
  ::form-stream-amount
@@ -158,11 +158,11 @@
     (subscribe [::form-stream-token-address])
     (subscribe [::form-stream-amount])
     (subscribe [::form-stream-time])
-    (subscribe [::form-stream-unit])])
- (fn [[recipient-address token-address amount time unit]]
+    (subscribe [::form-stream-duration-unit])])
+ (fn [[recipient-address token-address amount time duration-unit]]
    (validation/valid-stream-form?
     {:recipient-address recipient-address
      :token-address token-address
      :amount amount
      :time time
-     :unit unit})))
+     :duration-unit duration-unit})))

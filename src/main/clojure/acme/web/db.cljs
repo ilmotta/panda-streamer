@@ -151,7 +151,7 @@
   {:recipient-address {:value "" :error nil}
    :amount {:value "" :error nil}
    :token-address {:value "" :error nil}
-   :unit {:value "hour" :error nil}
+   :duration-unit {:value "hour" :error nil}
    :time {:value "" :error nil}})
 
 (def default
