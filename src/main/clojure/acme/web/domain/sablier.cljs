@@ -3,8 +3,9 @@
             ["@ethersproject/contracts" :refer [Contract]]
             [acme.web.domain.wallet :as wallet]
             [acme.web.util :as util]
-            [cljs.core.async :refer [go <!]]
-            [cljs.core.async.interop :refer-macros [<p!]]))
+            [cljs.core.async :refer [go]]
+            [cljs.core.async.interop :refer-macros [<p!]]
+            [promesa.core :as p]))
 
 ;; Prefer changing the local Sablier contract address in shadow-cljs.edn.
 (goog-define sablier-local-contract-address "")
@@ -111,8 +112,7 @@
     (get contract-addresses chain-name)))
 
 (defn get-address [^js signer]
-  (go
-    (<p! (.getAddress signer))))
+  (.getAddress signer))
 
 (defn make-create-stream-filter [^js contract address]
   (js->clj ((-> contract .-filters .-CreateStream) nil address)))
@@ -156,16 +156,14 @@
       (js->clj-receipt receipt))))
 
 (defn fetch-stream-logs [{:keys [from-block provider chain-id]}]
-  (go
-    (try
-      (let [payer (.getSigner provider)
-            payer-address (<! (get-address payer))
-            sablier-address (address-for chain-id)
-            sablier-contract (make-sablier-contract payer sablier-address)
-            filter (merge (make-create-stream-filter sablier-contract payer-address)
-                          {:fromBlock (or from-block 0)
-                           :toBlock "latest"})
-            logs (<p! (.getLogs provider (clj->js filter)))]
-        logs)
-      (catch js/Error error
-        error))))
+  (p/let [payer (.getSigner provider)
+          sablier-address (address-for chain-id)
+          payer-address (get-address payer)
+          sablier-contract (make-sablier-contract payer sablier-address)
+          filter (merge (make-create-stream-filter sablier-contract payer-address)
+                        {:fromBlock (or from-block 0)
+                         :toBlock "latest"})
+          logs (.getLogs provider (clj->js filter))]
+    (->> logs
+         (transduce logs-create-stream-transducer conj [])
+         (sort-by #(get-in % [:args :stream-id]) util/bignum-desc-comparator))))
