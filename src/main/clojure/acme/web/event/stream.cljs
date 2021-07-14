@@ -54,7 +54,8 @@
  (fn [{:keys [db]} _]
    (let [fields (get-in db [:form :stream :fields])
          sablier-address (sablier/address-for (get-in db [:wallet :chain-id]))
-         duration (util/time-in-seconds (get-in fields [:unit :value]) (get-in fields [:time :value]))
+         duration (util/time-in-seconds (get-in fields [:duration-unit :value])
+                                        (get-in fields [:time :value]))
          preferred-deposit (util/bignum (get-in fields [:amount :value]))
          context (sablier/calculate-stream-deposit
                   {:preferred-deposit preferred-deposit
@@ -257,9 +258,9 @@
          (assoc-in [:form :stream :fields :amount :error] error)))))
 
 (reg-event-db
- ::form-update-unit
+ ::form-update-duration-unit
  (fn [db [_ value]]
-   (assoc-in db [:form :stream :fields :unit :value] value)))
+   (assoc-in db [:form :stream :fields :duration-unit :value] value)))
 
 (reg-event-db
  ::form-update-time
@@ -286,7 +287,7 @@
              :token-address (get-in fields [:token-address :value])
              :amount (get-in fields [:amount :value])
              :time (get-in fields [:time :value])
-             :unit (get-in fields [:unit :value])})
+             :duration-unit (get-in fields [:duration-unit :value])})
        {:db (-> db
                 (assoc-in [:form :stream :status] :form/submitted)
                 (assoc-in [:form :stream :errors] []))

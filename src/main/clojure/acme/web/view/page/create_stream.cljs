@@ -125,7 +125,7 @@
 
 (defn stream-period []
   (let [time (<sub ::sub/form-stream-time)
-        unit (<sub ::sub/form-stream-unit)]
+        duration-unit (<sub ::sub/form-stream-duration-unit)]
     [:div
      [:label.block.font-bold.text-gray-700
       {:for :stream-time}
@@ -140,8 +140,8 @@
         :value time
         :on-change #(dispatch [::stream/form-update-time (-> % .-target .-value)])}]
       [:select.co-select.w-32
-       {:default-value unit
-        :on-change #(dispatch [::stream/form-update-unit (-> % .-target .-value)])}
+       {:default-value duration-unit
+        :on-change #(dispatch [::stream/form-update-duration-unit (-> % .-target .-value)])}
        [:option {:value "day"} "Day(s)"]
        [:option {:value "hour"} "Hour(s)"]
        [:option {:value "minute"} "Minute(s)"]]]
