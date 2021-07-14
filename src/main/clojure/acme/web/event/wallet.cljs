@@ -79,7 +79,7 @@
  (fn [{:keys [db]} _]
    (when (util/metamask-installed?)
      {:db (assoc-in db [:wallet :status] :wallet/connecting)
-      ::effect/promise {:thunk wallet/fetch-state
+      ::effect/promise {:thunk wallet/request-state
                         :on-success [::ready]
                         :on-failure [::connection-request-failed]}})))
 
@@ -94,17 +94,8 @@
  ::init
  (fn [{:keys [db]} _]
    (if (util/metamask-installed?)
-     (do
-       (go
-         (let [accounts (js->clj (-> js/ethereum .-_state .-accounts))
-               chain-id (<p! (-> (.request js/ethereum (clj->js {:method "eth_chainId"}))
-                                 (.catch (fn [_] nil))))
-               connected? (and chain-id (seq accounts))]
-           (if connected?
-             (dispatch [::ready {:accounts accounts
-                                 :chain-id chain-id
-                                 :provider (new Web3Provider js/ethereum)}])
-             ;; When signed-out, clean-up before redirecting.
-             (dispatch [::disconnected]))))
-       nil)
+     {::effect/promise {:thunk wallet/fetch-state
+                        :on-success [::ready]
+                        ;; When signed-out, clean-up before redirecting.
+                        :on-failure [::disconnected]}}
      {:db (assoc-in db [:wallet :status] :wallet/missing-dependency)})))
