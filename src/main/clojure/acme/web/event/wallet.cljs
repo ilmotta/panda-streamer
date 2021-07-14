@@ -5,9 +5,6 @@
             [acme.web.effect :as effect]
             [acme.web.route :as route]
             [acme.web.util :as util]
-            [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]
-            [promesa.core :as p]
             [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
 
 (reg-event-fx
@@ -29,19 +26,17 @@
  ::listen-disconnected
  (fn [_ _]
    (when (util/metamask-installed?)
-     (.on js/ethereum "disconnect"
-          (fn [error]
-            (dispatch [::disconnected error]))))
-   nil))
+     (wallet/listen-disconnect
+      (fn [error]
+        (dispatch [::disconnected error]))))))
 
 (reg-event-fx
  ::listen-accounts-changed
  (fn [_ _]
    (when (util/metamask-installed?)
-     (.on js/ethereum "accountsChanged"
-          (fn [accounts]
-            (dispatch [::accounts-changed (js->clj accounts)]))))
-   nil))
+     (wallet/listen-accounts-changed
+      (fn [accounts]
+        (dispatch [::accounts-changed accounts]))))))
 
 ;; It's recommended by the Metamask documentation to reload the page.
 (reg-event-fx
