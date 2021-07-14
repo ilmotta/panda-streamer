@@ -9,6 +9,7 @@
             [cljs.core.async.interop :refer-macros [<p!]]
             [pushy.core :as pushy]
             [ajax.core :as ajax]
+            [promesa.core :as p]
             [re-frame.core :refer [reg-fx dispatch]]
             [re-frame.db :as rf-db]
             [reagent.core :as reagent]))
@@ -23,6 +24,24 @@
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success on-success
                 :on-failure on-failure}})
+
+;; ::promise
+;;
+;; Call `thunk` as a promise and dispatch `on-success` when resolved or
+;; `on-failure` with the error object. `on-success` and `on-failure` are
+;; optional.
+;;
+(reg-fx
+ ::promise
+ (fn [{:keys [thunk on-success on-failure]}]
+   (-> (thunk)
+       (p/then (fn [result]
+                 (when on-success
+                   (dispatch (conj on-success result)))))
+       (p/catch (fn [error]
+                  (if on-failure
+                    (dispatch (conj on-failure error))
+                    (throw error)))))))
 
 ;; ::fetch-stream-logs
 ;;

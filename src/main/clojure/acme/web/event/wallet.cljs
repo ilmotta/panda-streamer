@@ -60,11 +60,11 @@
 
 (reg-event-fx
  ::ready
- (fn [{:keys [db]} [_ {:keys [accounts chain-id provider]}]]
+ (fn [{:keys [db]} [_ {:keys [accounts chain-id]}]]
    {:db (-> db
             (assoc-in [:wallet :accounts] accounts)
             (assoc-in [:wallet :chain-id] chain-id)
-            (assoc-in [:wallet :provider] provider)
+            (assoc-in [:wallet :provider] (new Web3Provider js/ethereum))
             (assoc-in [:wallet :status] :wallet/connected))
     ::effect/route (:active-page db)
     :fx [[:dispatch [::listen-disconnected]]
@@ -78,15 +78,17 @@
  ::request-connection
  (fn [{:keys [db]} _]
    (when (util/metamask-installed?)
-     (-> (wallet/fetch-state)
-         (p/then (fn [{:keys [accounts chain-id]}]
-                   (dispatch [::ready {:accounts accounts
-                                       :chain-id chain-id
-                                       :provider (new Web3Provider js/ethereum)}])))
-         (p/catch (fn [error]
-                    (when (= (ex-message error) ::wallet/user-rejected-request)
-                      (dispatch [::cancel-connection-request])))))
-     {:db (assoc-in db [:wallet :status] :wallet/connecting)})))
+     {:db (assoc-in db [:wallet :status] :wallet/connecting)
+      ::effect/promise {:thunk wallet/fetch-state
+                        :on-success [::ready]
+                        :on-failure [::connection-request-failed]}})))
+
+(reg-event-db
+ ::connection-request-failed
+ (fn [db [_ error]]
+   (if (= (ex-message error) ::wallet/user-rejected-request)
+     (assoc-in db [:wallet :status] :wallet/connection-rejected)
+     db)))
 
 (reg-event-fx
  ::init
