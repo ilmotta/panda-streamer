@@ -1,6 +1,5 @@
 (ns acme.web.effect
   (:require ["@ethersproject/contracts" :refer [Contract]]
-            [acme.web.domain.etherscan :as etherscan]
             [acme.web.domain.sablier :as sablier]
             [acme.web.domain.wallet :as wallet]
             [acme.web.route :as route]
@@ -8,22 +7,10 @@
             [cljs.core.async :refer [go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [pushy.core :as pushy]
-            [ajax.core :as ajax]
             [promesa.core :as p]
             [re-frame.core :refer [reg-fx dispatch]]
             [re-frame.db :as rf-db]
             [reagent.core :as reagent]))
-
-(defn fetch-block-number
-  "Return the effect description about how to get a block number given a
-  `timestamp`."
-  [{:keys [chain-id timestamp on-success on-failure]}]
-  {:http-xhrio {:method :get
-                :uri (etherscan/block-number-by-timestamp-url chain-id timestamp)
-                :timeout 5000
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success on-success
-                :on-failure on-failure}})
 
 ;; ::promise
 ;;
@@ -64,7 +51,7 @@
    (go
      (try
        (let [logs (->> (<! (sablier/fetch-stream-logs
-                            {:from-block (js/parseInt block-number 10)
+                            {:from-block block-number
                              :provider provider
                              :chain-id chain-id}))
                        (transduce sablier/logs-create-stream-transducer conj [])

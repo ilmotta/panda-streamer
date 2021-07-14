@@ -5,6 +5,7 @@
             [acme.web.effect :as effect]
             [acme.web.route :as route]
             [acme.web.util :as util]
+            [acme.web.domain.etherscan :as etherscan]
             [cljs.core.async :refer [go <!]]
             [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
 
@@ -14,22 +15,21 @@
  ::filter-logs
  (fn [{:keys [db]} [_ {:keys [hours]}]]
    (let [hours (js/parseInt (or hours (get-in db [:create-stream :max-history-hours])) 10)
-         timestamp (- (util/unix-timestamp) (* 3600 hours))]
-     (merge {:db (-> db
-                     (assoc-in [:loading :streams] true)
-                     (assoc-in [:create-stream :max-history-hours] hours))}
-            (effect/fetch-block-number
-             {:chain-id (get-in db [:wallet :chain-id])
-              :timestamp timestamp
-              :on-success [::filter-logs:block-found]
-              :on-failure [::filter-logs:failed]})))))
+         timestamp (- (util/unix-timestamp) (* 3600 hours))
+         chain-id (get-in db [:wallet :chain-id])]
+     {:db (-> db
+              (assoc-in [:loading :streams] true)
+              (assoc-in [:create-stream :max-history-hours] hours))
+      ::effect/promise {:thunk #(etherscan/fetch-block-number-by-timestamp chain-id timestamp)
+                        :on-success [::filter-logs:block-found]
+                        :on-failure [::filter-logs:failed]}})))
 
 (reg-event-fx
  ::filter-logs:block-found
- (fn [{:keys [db]} [_ {:keys [result]}]]
+ (fn [{:keys [db]} [_ {:keys [block-number]}]]
    (let [{:keys [provider chain-id]} (:wallet db)]
      {::effect/fetch-stream-logs
-      {:block-number result
+      {:block-number block-number
        :provider provider
        :chain-id chain-id
        :on-success [::filter-logs:finished]
