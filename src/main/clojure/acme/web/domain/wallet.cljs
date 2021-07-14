@@ -1,5 +1,6 @@
 (ns acme.web.domain.wallet
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [promesa.core :as p]))
 
 (def chain-ids
   {3 :ropsten
@@ -24,3 +25,27 @@
     {:code (str (-> error .-cause .-code))
      :message (-> error .-cause .-message)
      :reason (-> error .-cause .-reason)}))
+
+(defn fetch-accounts []
+  (-> (.request js/ethereum (clj->js {:method "eth_requestAccounts"}))
+      (p/then js->clj)))
+
+(defn fetch-chain-id []
+  (.request js/ethereum (clj->js {:method "eth_chainId"})))
+
+(defn fetch-state
+  "Request wallet state and resolve it to a map."
+  []
+  (let [accounts* (atom nil)]
+    (-> (fetch-accounts)
+        (p/then (partial reset! accounts*))
+        (p/then #(fetch-chain-id))
+        (p/then (fn [chain-id]
+                  {:accounts @accounts*
+                   :chain-id chain-id}))
+        (p/catch (fn [error]
+                   ;; EIP-1193 userRejectedRequest error. If this happens, the
+                   ;; user rejected the connection request.
+                   (if (= 4001 (.-code error))
+                     (throw (ex-info ::user-rejected-request {:error error}))
+                     (throw (ex-info ::generic-error {:error error}))))))))
