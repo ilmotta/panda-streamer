@@ -26,18 +26,22 @@
      :message (-> error .-cause .-message)
      :reason (-> error .-cause .-reason)}))
 
-(defn fetch-accounts []
+(defn request-accounts []
   (-> (.request js/ethereum (clj->js {:method "eth_requestAccounts"}))
       (p/then js->clj)))
+
+(defn fetch-accounts []
+  (js->clj (-> js/ethereum .-_state .-accounts)))
 
 (defn fetch-chain-id []
   (.request js/ethereum (clj->js {:method "eth_chainId"})))
 
-(defn fetch-state
-  "Request wallet state and resolve it to a map."
+(defn request-state
+  "Request wallet state and resolve it to a map. The promise will be rejected if
+  the user rejects the UI request."
   []
   (let [accounts* (atom nil)]
-    (-> (fetch-accounts)
+    (-> (request-accounts)
         (p/then (partial reset! accounts*))
         (p/then #(fetch-chain-id))
         (p/then (fn [chain-id]
@@ -49,3 +53,15 @@
                    (if (= 4001 (.-code error))
                      (throw (ex-info ::user-rejected-request {:error error}))
                      (throw (ex-info ::generic-error {:error error}))))))))
+
+(defn fetch-state
+  "Fetch wallet state and resolve it to a map. This function will not open the
+  MetaMask window. You can also use this function to detect if MetaMask is
+  disconnected."
+  []
+  (-> (fetch-chain-id)
+      (p/then (fn [chain-id]
+                (let [accounts (fetch-accounts)]
+                  (if (seq accounts)
+                    {:accounts accounts :chain-id chain-id}
+                    (throw (ex-info ::disconnected {:error nil}))))))))
