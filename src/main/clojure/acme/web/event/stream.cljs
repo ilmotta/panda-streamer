@@ -181,9 +181,7 @@
      (if (util/wallet-connected? db)
        (if (get-in db [:create-stream :receipt-for-log])
          {:fx [[:dispatch-later {:ms poll-interval :dispatch [::fetch-receipt]}]]}
-         (if-let [incomplete-log (->> (get-in db [:create-stream :logs])
-                                      (filter #(= :incomplete (:sync-status %)))
-                                      (first))]
+         (if-let [incomplete-log (sablier/incomplete-log (get-in db [:create-stream :logs]))]
            {:db (assoc-in db [:create-stream :receipt-for-log] incomplete-log)
             ::effect/promise {:thunk #(sablier/fetch-stream-receipt
                                        incomplete-log
