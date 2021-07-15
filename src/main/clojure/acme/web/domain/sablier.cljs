@@ -142,14 +142,6 @@
    :block-number (.-blockNumber receipt)
    :logs (js->clj (.-logs receipt))})
 
-(def logs-create-stream-transducer
-  (comp
-   (map (fn [log]
-          {:log log
-           :parsed-log (.parseLog log-parser log)}))
-   (map js->clj-log)
-   (map #(assoc % :sync-status :incomplete))))
-
 (defn fetch-stream-receipt [log provider]
   (go
     (let [receipt (<p! (.waitForTransaction provider (:tx-hash log)))]
@@ -165,5 +157,9 @@
                          :toBlock "latest"})
           logs (.getLogs provider (clj->js filter))]
     (->> logs
-         (transduce logs-create-stream-transducer conj [])
+         (map (fn [log]
+                {:log log
+                 :parsed-log (.parseLog log-parser log)}))
+         (map js->clj-log)
+         (map #(assoc % :sync-status :incomplete))
          (sort-by #(get-in % [:args :stream-id]) util/bignum-desc-comparator))))
