@@ -181,17 +181,15 @@
      (if (util/wallet-connected? db)
        (if (get-in db [:create-stream :receipt-for-log])
          {:fx [[:dispatch-later {:ms poll-interval :dispatch [::fetch-receipt]}]]}
-         (let [incomplete-log (->> (get-in db [:create-stream :logs])
-                                   (filter #(= :incomplete (:sync-status %)))
-                                   (first))]
-           (if incomplete-log
-             (do
-               (go
-                 (let [provider (get-in db [:wallet :provider])
-                       receipt (<! (sablier/fetch-stream-receipt incomplete-log provider))]
-                   (dispatch [::receipt-fetched receipt])))
-               {:db (assoc-in db [:create-stream :receipt-for-log] incomplete-log)})
-             {:fx [[:dispatch-later {:ms poll-interval :dispatch [::fetch-receipt]}]]})))
+         (if-let [incomplete-log (->> (get-in db [:create-stream :logs])
+                                      (filter #(= :incomplete (:sync-status %)))
+                                      (first))]
+           {:db (assoc-in db [:create-stream :receipt-for-log] incomplete-log)
+            ::effect/promise {:thunk #(sablier/fetch-stream-receipt
+                                       incomplete-log
+                                       (get-in db [:wallet :provider]))
+                              :on-success [::receipt-fetched]}}
+           {:fx [[:dispatch-later {:ms poll-interval :dispatch [::fetch-receipt]}]]}))
        {:fx [[:dispatch-later {:ms poll-interval :dispatch [::fetch-receipt]}]]}))))
 
 ;;; LOGS UPDATER
