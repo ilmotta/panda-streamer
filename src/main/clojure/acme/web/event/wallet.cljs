@@ -43,10 +43,9 @@
  ::listen-chain-changed
  (fn [_ _]
    (when (util/metamask-installed?)
-     (.on js/ethereum "chainChanged"
-          (fn [_chain-id]
-            (-> js/window .-location .reload))))
-   nil))
+     (wallet/listen-chain-changed
+      (fn [_chain-id]
+        (-> js/window .-location .reload))))))
 
 (reg-event-db
  ::cancel-connection-request
