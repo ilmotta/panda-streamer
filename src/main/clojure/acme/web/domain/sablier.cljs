@@ -140,6 +140,11 @@
    :block-number (.-blockNumber receipt)
    :logs (js->clj (.-logs receipt))})
 
+(defn incomplete-log [logs]
+  (->> logs
+       (filter #(= :incomplete (:sync-status %)))
+       (first)))
+
 (defn fetch-stream-receipt [log provider]
   (p/let [receipt (.waitForTransaction provider (:tx-hash log))]
     (js->clj-receipt receipt)))
