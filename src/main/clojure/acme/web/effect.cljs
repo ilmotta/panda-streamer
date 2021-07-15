@@ -3,8 +3,6 @@
             [acme.web.domain.sablier :as sablier]
             [acme.web.domain.wallet :as wallet]
             [acme.web.route :as route]
-            [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]
             [pushy.core :as pushy]
             [promesa.core :as p]
             [re-frame.core :refer [reg-fx dispatch]]
@@ -90,14 +88,13 @@
          contract-abi (clj->js (get sablier/abi abi))
          contract (new Contract address contract-abi provider)
          contract-fn (aget contract (name method))]
-     (go
-       (try
-         (let [result (<p! (.apply contract-fn contract (clj->js args)))]
-           (when on-success
-             (dispatch (conj on-success result))))
-         (catch js/Error error
-           (when on-failure
-             (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
+     (-> (.apply contract-fn contract (clj->js args))
+         (p/then (fn [result]
+                   (when on-success
+                     (dispatch (conj on-success result)))))
+         (p/catch (fn [error]
+                    (when on-failure
+                      (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
 ;; ::contract-transaction-verify
 ;;
@@ -136,14 +133,13 @@
          contract-abi (clj->js (get sablier/abi abi))
          contract (new Contract address contract-abi signer)
          contract-fn (aget (.-callStatic contract) (name method))]
-     (go
-       (try
-         (let [result (<p! (.apply contract-fn contract (clj->js args)))]
-           (when on-success
-             (dispatch (conj on-success result))))
-         (catch js/Error error
-           (when on-failure
-             (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
+     (-> (.apply contract-fn contract (clj->js args))
+         (p/then (fn [result]
+                   (when on-success
+                     (dispatch (conj on-success result)))))
+         (p/catch (fn [error]
+                    (when on-failure
+                      (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
 ;; ::contract-transaction
 ;;
@@ -178,28 +174,25 @@
  (fn [{:keys [wait abi address method args on-success on-failure]}]
    (let [db @rf-db/app-db
          signer (.getSigner (get-in db [:wallet :provider]))
-         transaction (atom nil)
          contract-abi (clj->js (get sablier/abi abi))
          contract (new Contract address contract-abi signer)
          contract-fn (aget contract (name method))]
-     (go
-       (try
-         (reset! transaction (<p! (.apply contract-fn contract (clj->js args))))
-         (catch js/Error error
-           (when on-failure
-             (dispatch (conj on-failure (wallet/normalize-provider-error error) @transaction)))))
-       (when @transaction
-         (if wait
-           (try
-             (let [wait (if (true? wait) 1 wait)
-                   receipt (<p! (.wait @transaction wait))]
-               (when on-success
-                 (dispatch (conj on-success receipt))))
-             (catch js/Error error
-               (when on-failure
-                 (dispatch (conj on-failure (wallet/normalize-provider-error error) @transaction)))))
-           (when on-success
-             (dispatch (conj on-success @transaction)))))))))
+     (-> (.apply contract-fn contract (clj->js args))
+         (p/then (fn [transaction]
+                   (if wait
+                     (let [wait (if (true? wait) 1 wait)]
+                       (-> (.wait transaction wait)
+                           (p/then (fn [receipt]
+                                     (when on-success
+                                       (dispatch (conj on-success receipt)))))
+                           (p/catch (fn [error]
+                                      (when on-failure
+                                        (dispatch (conj on-failure (wallet/normalize-provider-error error) transaction)))))))
+                     (when on-success
+                       (dispatch (conj on-success transaction))))))
+         (p/catch (fn [error]
+                    (when on-failure
+                      (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
 ;; ::focus-element
 ;;
