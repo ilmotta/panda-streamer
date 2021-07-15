@@ -3,8 +3,6 @@
             ["@ethersproject/contracts" :refer [Contract]]
             [acme.web.domain.wallet :as wallet]
             [acme.web.util :as util]
-            [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]
             [promesa.core :as p]))
 
 ;; Prefer changing the local Sablier contract address in shadow-cljs.edn.
@@ -143,9 +141,8 @@
    :logs (js->clj (.-logs receipt))})
 
 (defn fetch-stream-receipt [log provider]
-  (go
-    (let [receipt (<p! (.waitForTransaction provider (:tx-hash log)))]
-      (js->clj-receipt receipt))))
+  (p/let [receipt (.waitForTransaction provider (:tx-hash log))]
+    (js->clj-receipt receipt)))
 
 (defn fetch-stream-logs [{:keys [from-block provider chain-id]}]
   (p/let [payer (.getSigner provider)
