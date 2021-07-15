@@ -75,3 +75,7 @@
 (defn listen-disconnect [f]
   (.on js/ethereum "disconnect" f)
   nil)
+
+(defn listen-chain-changed [f]
+  (.on js/ethereum "chainChanged" f)
+  nil)
