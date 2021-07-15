@@ -6,9 +6,8 @@
             [acme.web.route :as route]
             [acme.web.util :as util]
             [acme.web.domain.etherscan :as etherscan]
-            [cljs.core.async :refer [go <!]]
             [promesa.core :as p]
-            [re-frame.core :refer [reg-event-db reg-event-fx dispatch]]))
+            [re-frame.core :refer [reg-event-db reg-event-fx]]))
 
 ;;; FILTERS
 
