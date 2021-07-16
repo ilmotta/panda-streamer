@@ -207,17 +207,10 @@
                                   (.getElementById element-id)
                                   .focus))))
 
-;; ::route
-;;
-;; Change the browser history to the path found for `page`, where `page` is a
-;; namespaced keyword defined in `acme.web.route/routes`.
-;;
-;; Usage:
-;; {::route :acme.web.route/about}
+;; Change the browser history to the path found for `page`.
 ;;
 ;; There is no 404 handling, therefore it's assumed `route/path-for` always
 ;; returns a valid path for a given `page`.
-;;
 (>reg-fx
  ::route
  {:schema [:=> [:cat db/page-spec] [:any]]}
