@@ -4,6 +4,9 @@
             [cljs.core.async :refer [go-loop go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as string]
+            [crypticbutter.snoop :refer [>defn]]
+            [malli.core :as malli]
+            [malli.error :as malli-error]
             [re-frame.core :as re-frame]))
 
 (defn <sub
@@ -22,6 +25,43 @@
   https://day8.github.io/re-frame/correcting-a-wrong/#lambdaisland-naming-lin"
   [& args]
   @(re-frame/subscribe (vec args)))
+
+(>defn fn-spec-reporter
+  "Report spec validation errors for identifier `id`."
+  [id]
+  [:=> [:cat :keyword] :any]
+  (fn [error {:keys [input output value args _schema]}]
+    (if (= error ::malli/invalid-output)
+      (js/console.error "Invalid output from"
+                        (str id ":")
+                        (str "`" value "`")
+                        (-> (malli/explain output value)
+                            (malli-error/humanize)
+                            (first )))
+      (js/console.error "Invalid input to"
+                        (str id ":")
+                        (string/join "\n"
+                                     (map (fn [arg msg]
+                                            (str "`" arg "` " msg))
+                                          args
+                                          (-> (malli/explain input args)
+                                              (malli-error/humanize)
+                                              (first ))))))))
+
+(>defn >reg-fx
+  "A wrapper around `malli.core/reg-fx` that instruments `handler` using
+  `malli-props`. By default, the :report function is `fn-spec-reporter` instead
+  of `malli.core/-fail!`. See `malli.core/-instrument` for all options available
+  in `malli-props`."
+  [id malli-props handler]
+  [:=> [:cat :keyword :map fn?] :any]
+  (re-frame/reg-fx
+   id
+   (malli/-instrument
+    (merge
+     {:report (fn-spec-reporter id)}
+     malli-props)
+    handler)))
 
 (def time-config
   {:year {:unit "y" :seconds (* 365 24 3600)}

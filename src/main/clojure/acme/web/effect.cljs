@@ -1,8 +1,10 @@
 (ns acme.web.effect
   (:require ["@ethersproject/contracts" :refer [Contract]]
+            [acme.web.db :as db]
             [acme.web.domain.sablier :as sablier]
             [acme.web.domain.wallet :as wallet]
             [acme.web.route :as route]
+            [acme.web.util :refer [>reg-fx]]
             [pushy.core :as pushy]
             [promesa.core :as p]
             [re-frame.core :refer [reg-fx dispatch]]
@@ -194,17 +196,12 @@
                     (when on-failure
                       (dispatch (conj on-failure (wallet/normalize-provider-error error))))))))))
 
-;; ::focus-element
-;;
 ;; Set focus on DOM `element-id`.
 ;;
-;; Usage:
-;; {::focus-element "some-element-id"}
-;;
 ;; It fails silently if the element can't be found.
-;;
-(reg-fx
+(>reg-fx
  ::focus-element
+ {:schema [:=> [:cat :string] [:any]]}
  (fn [element-id]
    (reagent/after-render #(some-> js/document
                                   (.getElementById element-id)
@@ -221,7 +218,8 @@
 ;; There is no 404 handling, therefore it's assumed `route/path-for` always
 ;; returns a valid path for a given `page`.
 ;;
-(reg-fx
+(>reg-fx
  ::route
+ {:schema [:=> [:cat db/page-spec] [:any]]}
  (fn [page]
    (pushy/set-token! route/history (route/path-for page))))

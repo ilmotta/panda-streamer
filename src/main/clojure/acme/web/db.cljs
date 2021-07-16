@@ -5,11 +5,14 @@
             [malli.core :as malli]
             [malli.error :as malli-error]))
 
+(def page-spec
+  [:qualified-keyword {:namespace :acme.web.route}])
+
 (def state-spec
   [:map
    {:closed true}
    ;; The qualified name of the current page.
-   [:active-page [qualified-keyword? {:namespace :acme.web.route}]]
+   [:active-page page-spec]
 
    ;; A map of boolean flags that view components can subscribe to show that
    ;; asynchronous operations haven't finished.

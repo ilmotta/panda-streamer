@@ -12,7 +12,11 @@
                 funcool/promesa {:mvn/version "6.0.2"}
 
                 ;; Data-driven schemas.
-                metosin/malli {:mvn/version "0.5.1"}
+                metosin/malli {:git/url "https://github.com/metosin/malli.git"
+                               :sha "aa979c1fe0df622f6962720d14578d88bc543546"}
+
+                ;; Function instrumentation using Malli schemas.
+                com.crypticbutter/snoop {:mvn/version "21-166-alpha2"}
 
                 ;; Force re-frame to use the latest Reagent version. The latest
                 ;; release also removes lots of compiler warnings and support
