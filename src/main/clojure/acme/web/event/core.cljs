@@ -3,12 +3,17 @@
             [acme.web.effect :as effect]
             [acme.web.event.stream]
             [acme.web.event.wallet :as wallet]
+            [acme.web.util :refer [>reg-event-fx >reg-event-db]]
             [re-frame.core :refer [reg-event-db reg-event-fx]]))
 
 ;;; CLIPBOARD
 
-(reg-event-fx
+(>reg-event-fx
  ::clipboard-write
+ {:event [:map
+          [:id :qualified-keyword]
+          [:text {:optional true} :string]
+          [:db-path [:vector :keyword]]]}
  (fn [{:keys [db]} [_ {:keys [id text db-path]}]]
    {::effect/clipboard-write
     {:text (or text (get-in db db-path))
@@ -19,16 +24,18 @@
  (fn [db _]
    (dissoc db :clipboard-write-id)))
 
-(reg-event-fx
+(>reg-event-fx
  ::clipboard-write-finished
+ {:event :qualified-keyword}
  (fn [{:keys [db]} [_ id]]
    {:db (assoc db :clipboard-write-id id)
     :fx [[:dispatch-later {:ms 1000 :dispatch [::clipboard-reset]}]]}))
 
 ;;; ROUTING
 
-(reg-event-db
+(>reg-event-db
  ::set-active-page
+ {:event db/page-spec}
  (fn [db [_ page]]
    (assoc db :active-page page)))
 
