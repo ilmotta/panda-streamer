@@ -1,9 +1,11 @@
 (ns user
-  (:require [portal.web :as portal]
+  (:require [acme.web.app :as app]
+            [acme.web.db :as db]
+            [acme.web.event.stream :as stream]
+            [acme.web.util :as util]
+            [portal.web :as portal]
             [re-frame.core :as re-frame]
-            [re-frame.db :as re-frame-db]
-            [acme.web.app :as app]
-            [acme.web.event.stream :as stream]))
+            [re-frame.db :as re-frame-db]))
 
 (defn setup-portal
   []
@@ -18,6 +20,7 @@
 (defn init! []
   ;; Set println to write to `console.log`.
   (enable-console-print!)
+  (reset! util/db-schema* db/state-spec)
   (setup-portal))
 
 (init!)

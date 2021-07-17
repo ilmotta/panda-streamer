@@ -4,10 +4,17 @@
             [cljs.core.async :refer [go-loop go <!]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as string]
+            [clojure.walk :as walk]
             [crypticbutter.snoop :refer [>defn]]
             [malli.core :as malli]
             [malli.error :as malli-error]
             [re-frame.core :as re-frame]))
+
+(def db-schema*
+  "Used by >reg-* functions to validate re-frame db against a schema. This is
+  currently necessary to avoid circular dependencies, because acme.web.db
+  requires this namespace."
+  (atom :any))
 
 (defn <sub
   "This is a convenience function used throughout most view components. The name
@@ -26,6 +33,14 @@
   [& args]
   @(re-frame/subscribe (vec args)))
 
+(defn malli-errors-nil->underscore
+  "Replace all occurrences of nil with the underscore symbol (specially useful to
+  transform the result of `malli-error/humanize`). This should improve
+  readability because nil can easily be mistaken as an error, whereas undescore
+  is universally understood as 'do not care'."
+  [form]
+  (walk/postwalk #(if (nil? %) '_ %) form))
+
 (>defn fn-spec-reporter
   "Report spec validation errors for identifier `id`."
   [id]
@@ -35,26 +50,21 @@
       (js/console.error "Invalid output from"
                         (str id ":")
                         (str "`" value "`")
-                        (-> (malli/explain output value)
-                            (malli-error/humanize)
-                            (first )))
+                        (str (-> (malli/explain output value)
+                                 (malli-error/humanize)
+                                 (malli-errors-nil->underscore))))
       (js/console.error "Invalid input to"
                         (str id ":")
-                        (string/join "\n"
-                                     (map (fn [arg msg]
-                                            (str "`" arg "` " msg))
-                                          args
-                                          (-> (malli/explain input args)
-                                              (malli-error/humanize)
-                                              (first ))))))))
+                        (str (-> (malli/explain input args)
+                                 (malli-error/humanize)
+                                 (malli-errors-nil->underscore)))))))
 
-(>defn >reg-fx
+(defn >reg-fx
   "A wrapper around `malli.core/reg-fx` that instruments `handler` using
   `malli-props`. By default, the :report function is `fn-spec-reporter` instead
   of `malli.core/-fail!`. See `malli.core/-instrument` for all options available
   in `malli-props`."
   [id malli-props handler]
-  [:=> [:cat :keyword :map fn?] :any]
   (re-frame/reg-fx
    id
    (malli/-instrument
@@ -62,6 +72,67 @@
      {:report (fn-spec-reporter id)}
      malli-props)
     handler)))
+
+(defn >reg-event-fx
+  "A wrapper around `malli.core/reg-event-fx` that instruments `handler` using
+  `props`.
+
+  The `props` map supports all the options available in the
+  `malli.core/-instrument` function. If it has the :event keyword, then it is
+  considered a Malli schema to validate data passed to the event.
+
+  {:schema [:=> [:cat @db-schema*
+                      [:tuple :qualified-keyword (:event props)]]
+            [:or :map :nil]]}
+
+  By default, the validation will check if the output is either a map or nil,
+  which should help you understand why re-frame exploded with errors like 'No
+  protocol method IMap...'"
+  ([id props handler]
+   (>reg-event-fx id nil props handler))
+  ([id interceptors props handler]
+   (let [malli-props {:report (fn-spec-reporter id)}]
+     (re-frame/reg-event-fx
+      id
+      interceptors
+      (malli/-instrument
+       (if-let [event-schema (:event props)]
+         (merge malli-props props
+                {:schema [:=> [:cat
+                               [:map [:db @db-schema*]]
+                               [:tuple :qualified-keyword event-schema]]
+                          [:or :map :nil]]})
+         (merge malli-props props))
+       handler)))))
+
+(defn >reg-event-db
+  "A wrapper around `malli.core/reg-event-db` that instruments `handler` using
+  `props`.
+
+  The `props` map supports all the options available in the
+  `malli.core/-instrument` function. If it has the :event keyword, then it is
+  considered a Malli schema to validate data passed to the event.
+
+  {:schema [:=> [:cat @db-schema*
+                      [:tuple :qualified-keyword (:event props)]]
+            @db-schema*]}
+  "
+  ([id props handler]
+   (>reg-event-db id nil props handler))
+  ([id interceptors props handler]
+   (let [malli-props {:report (fn-spec-reporter id)}]
+     (re-frame/reg-event-db
+      id
+      interceptors
+      (malli/-instrument
+       (if-let [event-schema (:event props)]
+         (merge malli-props props
+                {:schema [:=> [:cat
+                               @db-schema*
+                               [:tuple :qualified-keyword event-schema]]
+                          @db-schema*]})
+         (merge malli-props props))
+       handler)))))
 
 (def time-config
   {:year {:unit "y" :seconds (* 365 24 3600)}
