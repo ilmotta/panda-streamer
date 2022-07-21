@@ -1,4 +1,4 @@
-{:deps {:aliases [:cljs]}
+{:deps true
 
  ;; Route /index.html request to <project-root>/resources/public/index.html
  :dev-http {8080 "build/public"}
@@ -11,6 +11,7 @@
 
    ;; Only release builds will produce a report when using the hook, it does not
    ;; affect watch or compile.
+   ;;
    :build-hooks [(shadow.cljs.build-report/hook {:output-to ".cache/report-web.html"})]
 
    :devtools {:repl-init-ns user

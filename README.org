@@ -30,9 +30,9 @@
 * Product
 
 /Panda Streamer/ is the name of a *fictional* product, currently hosted at
-https://panda-streamer.netlify.app/. It's an Ethereum DeFi application that
-allows users to continuously send ERC-20 tokens to someone else within a
-specified window of time. It leverages the [[https://sablier.finance/][Sablier]] protocol behind the scenes.
+https://panda-streamer.web.app/. It's an Ethereum DeFi application that allows
+users to continuously send ERC-20 tokens to someone else within a specified
+window of time. It leverages the [[https://sablier.finance/][Sablier]] protocol behind the scenes.
 
 #+begin_html
 <table>
@@ -95,7 +95,7 @@ In no order of importance:
 - [[https://clojurescript.org/][Clojure(Script)]]
 - [[https://github.com/ethers-io/ethers.js/][Ethers]]
 - [[https://metamask.io/][Metamask]]
-- [[https://app.netlify.com/][Netlify]]
+- [[https://firebase.google.com/products/hosting][Firebase Static Hosting]]
 - [[https://nodejs.org/en/][Node.js]]
 - [[https://day8.github.io/re-frame/][re-frame]]
 - [[https://shadow-cljs.github.io/docs/UsersGuide.html][Shadow CLJS]]
@@ -170,9 +170,8 @@ instead of manually fetching logs.
 
 * Deployment
 
-Netlify hosts Panda Streamer as a SPA. The [[file:netlify.toml]] file sets up
-various configuration options. Pushes to =origin/release= are automatically
-deployed to production.
+Firebase Hosting hosts Panda Streamer as a SPA. The deployment is manual, but it
+works fine for demonstration purposes.
 
 ** Application bundling tools
 
@@ -206,8 +205,8 @@ players on their own.
 | CSS        | 4.3 kb      |
 |------------+-------------|
 
-Image assets are committed in the repository itself and served by Netlify.
-Suboptimal, but it works for this pet project.
+Image assets are committed in the repository itself and served by the hosting
+service. Suboptimal, but it works for this pet project.
 
 * Local development
 
@@ -217,19 +216,12 @@ steps 2 and 3.
 ** 1. Install runtimes and application dependencies
 
 You'll need to install Clojure (JVM) in order to install [[https://clojurescript.org/guides/quick-start][ClojureScript]] and
-you'll need Node. Netlify uses a specific Node version =v12.18.0= and the
-shipped NPM =v6.14.4= (as of Jun/2021). If you're going to simply run the app
-locally you'll be fine with the latest LTS version 14.x, but if you want to
-manage the project dependencies it's paramount you use the same Netlify
-versions. I've faced hard to debug issues from the non-backwards compatible way
-=npm= handles the =package-lock.json= file. The Netlify build would constantly
-fail because of that. Ideally, the project should offer [[https://guix.gnu.org/][GNU/Guix]] or Docker
-scripts to help you run this project in an isolated environment.
+you'll need Node v16.16.0 (latest LTS as of 2022-Jul).
 
 #+begin_example sh
 cd panda-streamer
-nvm use # to use the specific Netlify version
-npm install
+nvm use
+npm ci
 #+end_example
 
 ** 2. Install a local blockchain

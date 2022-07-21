@@ -1,0 +1,6 @@
+.firebase/
+.cache/
+.cpcache/
+.shadow-cljs/
+build/js
+node_modules/
