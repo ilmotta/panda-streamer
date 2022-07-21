@@ -8,7 +8,7 @@
     publish = "build/public/"
 
     # Default build command.
-    command = "npm install && npm run release"
+    command = "npm ci && npm run release"
 
 # The following redirect is intended for use with most SPAs that handle routing
 # internally.
