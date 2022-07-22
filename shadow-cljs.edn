@@ -11,7 +11,13 @@
 
    ;; Only release builds will produce a report when using the hook, it does not
    ;; affect watch or compile.
-   :build-hooks [(shadow.cljs.build-report/hook {:output-to ".cache/report-web.html"})]
+   ;;
+   ;; Disabled because the hook fails with:
+   ;;
+   ;; Hook [0 shadow.cljs.build-report/hook] failed in stage :flush
+   ;; [web:release] NullPointerException: Cannot invoke "clojure.lang.Named.getName()" because "x" is null
+   ;;
+   ;; :build-hooks [(shadow.cljs.build-report/hook {:output-to ".cache/report-web.html"})]
 
    :devtools {:repl-init-ns user
               :preloads [user

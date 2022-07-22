@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: panda-streamer
+    env: docker
+    branch: release
+    region: oregon
+    staticPublishPath: ./build/public
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
