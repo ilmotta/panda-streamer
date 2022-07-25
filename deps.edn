@@ -6,7 +6,7 @@
         re-frame/re-frame {:mvn/version"1.2.0"}
 
         ;; A promise library.
-        funcool/promesa {:mvn/version "6.0.2"}
+        funcool/promesa {:mvn/version "8.0.450"}
 
         ;; Data-driven schemas.
         metosin/malli {:git/url "https://github.com/metosin/malli.git"
@@ -28,15 +28,15 @@
         kibu/pushy {:mvn/version "0.3.8"}
 
         ;; Data browser/inspector (only used for development).
-        djblue/portal {:mvn/version "0.12.0"}
+        djblue/portal {:mvn/version "0.28.0"}
 
         ;; An effect handler for AJAX calls.
-        day8.re-frame/http-fx {:mvn/version "0.2.3"}
+        day8.re-frame/http-fx {:mvn/version "0.2.4"}
 
         ;; A graph based visualization tool for re-frame event chains.
         org.clojars.ertucetin/re-frame-flow {:mvn/version "0.1.4"}
         day8.re-frame/tracing {:mvn/version "0.6.2"}
-        day8.re-frame/re-frame-10x {:mvn/version "1.1.3"}}
+        day8.re-frame/re-frame-10x {:mvn/version "1.4.1"}}
 
  :aliases
  {:lint
@@ -50,7 +50,7 @@
   ;; Visualize dependencies.
   :graph-deps
   {:replace-paths []
-   :replace-deps  {org.clojure/tools.deps.graph {:mvn/version "1.0.56"}}
+   :replace-deps  {org.clojure/tools.deps.graph {:mvn/version "1.1.68"}}
    :main-opts     ["-m" "clojure.tools.deps.graph"]
    :ns-default    clojure.tools.deps.graph
    :exec-fn       graph
