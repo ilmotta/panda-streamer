@@ -18,7 +18,7 @@
         ;; Force re-frame to use the latest Reagent version. The latest
         ;; release also removes lots of compiler warnings and support
         ;; React 17.0.2.
-        reagent/reagent {:mvn/version "1.1.0"}
+        reagent/reagent {:mvn/version "1.1.1"}
 
         ;; Compose Tailwind classes using data.
         rgm/tailwind-hiccup {:mvn/version "0.2.0"}
@@ -40,11 +40,11 @@
 
  :aliases
  {:lint
-  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.06.18"}}
+  {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.06.22"}}
    :main-opts  ["-m" "clj-kondo.main" "--lint" "src"]}
 
   :format
-  {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.0"}}
+  {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.2"}}
    :main-opts ["-m" "cljfmt.main"]}
 
   ;; Visualize dependencies.
@@ -61,15 +61,15 @@
   :unused
   {:extra-deps {borkdude/carve
                 {:git/url "https://github.com/borkdude/carve"
-                 :sha     "f499f65e36e02484609f01ce891f3c0207b24444"}}
+                 :sha     "df552797a198b6701fb2d92390fce7c59205ea77"}}
    :main-opts ["-m" "carve.main" "--opts" "{:paths [\"src\"] :dry-run true}"]}
 
 
   ;; Report project dependencies that have newer versions available.
   :outdated
   {:replace-paths []
-   :replace-deps  {com.github.liquidz/antq {:mvn/version "0.13.0"}
-                   org.slf4j/slf4j-nop     {:mvn/version "1.7.31"}}
+   :replace-deps  {com.github.liquidz/antq {:mvn/version "1.9.867"}
+                   org.slf4j/slf4j-nop     {:mvn/version "1.7.36"}}
    :main-opts     ["-m" "antq.core"]}}
 
  ;; Provider attributes
