@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.2.6",
-    "concurrently": "^6.2.0",
+    "concurrently": "^7.3.0",
     "cssnano": "^5.0.6",
     "dagre": "0.8.5",
     "dotenv": "^10.0.0",
