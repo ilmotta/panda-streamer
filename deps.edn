@@ -10,7 +10,7 @@
 
         ;; Data-driven schemas.
         metosin/malli {:git/url "https://github.com/metosin/malli.git"
-                       :sha "aa979c1fe0df622f6962720d14578d88bc543546"}
+                       :sha "b29c47d2b87fd70d6ff7ea39e1e16efaf0483986"}
 
         ;; Function instrumentation using Malli schemas.
         com.crypticbutter/snoop {:mvn/version "21-353-alpha"}
