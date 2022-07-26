@@ -38,7 +38,13 @@
            ;; Use a specific local Sablier contract.
            ;; acme.web.domain.sablier/sablier-local-contract-address
            ;; "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
-           }}}
+           }
+
+          ;; Ignores warnings like:
+          ;;
+          ;; abs already refers to: #'clojure.core/abs in namespace: taoensso.encore, being replaced by: #'taoensso.encore/abs
+          ;;
+          :warnings {:redef false}}}
 
    :release {:infer-externs :auto
              :compiler-options
