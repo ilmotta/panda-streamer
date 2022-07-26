@@ -2,6 +2,5 @@
          (cider-default-cljs-repl . shadow)
          (cider-preferred-build-tool . shadow-cljs)
          (cider-shadow-default-options . ":web")))
- (js2-mode . ((eval . (lsp-deferred))
-              (eval . (apheleia-mode))))
+ (js-mode . ((eval . (apheleia-mode))))
  (css-mode . ((eval . (apheleia-mode)))))
